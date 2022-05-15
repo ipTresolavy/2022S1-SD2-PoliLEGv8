@@ -1,0 +1,93 @@
+m255
+K4
+z2
+!s11e MIXED_VERSIONS
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PolilegV8/build/Memory
+Edata_memory
+Z0 w1652585260
+Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z2 DPx4 ieee 11 numeric_bit 0 22 G2;d`f^X6V]cQEn8_38:i1
+!i122 28
+Z3 d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PolilegV8/build
+Z4 8../hdl/Memory/data_memory.vhd
+Z5 F../hdl/Memory/data_memory.vhd
+l0
+Z6 L12 1
+Vb4eXZRMi>X4DoY5b6J3lG1
+!s100 5oOeMJ?9_eJdlJK^h51Z>3
+Z7 OV;C;2020.1;71
+32
+Z8 !s110 1652585627
+!i10b 1
+Z9 !s108 1652585627.000000
+Z10 !s90 ../hdl/Memory/data_memory.vhd|-work|Memory/work/|
+Z11 !s107 ../hdl/Memory/data_memory.vhd|
+!i113 1
+Z12 o-work Memory/work/
+Z13 tExplicit 1 CvgOpt 0
+Adata_memory_operation
+R1
+R2
+DEx4 work 11 data_memory 0 22 b4eXZRMi>X4DoY5b6J3lG1
+!i122 28
+l32
+L25 26
+VA:kO@G]g6NQ;@?[8g34102
+!s100 IXHdM9XLEblW`VR_RNnKA2
+R7
+32
+R8
+!i10b 1
+R9
+R10
+R11
+!i113 1
+R12
+R13
+Einstruction_memory
+Z14 w1652583103
+R1
+R2
+!i122 29
+R3
+Z15 8../hdl/Memory/instruction_memory.vhd
+Z16 F../hdl/Memory/instruction_memory.vhd
+l0
+R6
+V?>Q=HznGNd1fLLh5^1Ye72
+!s100 Cbcm7j^HA<U^Dg2FnMD;H0
+R7
+32
+R8
+!i10b 1
+R9
+Z17 !s90 ../hdl/Memory/instruction_memory.vhd|-work|Memory/work|
+Z18 !s107 ../hdl/Memory/instruction_memory.vhd|
+!i113 1
+Z19 o-work Memory/work
+R13
+Ainstruction_memory_operation
+R1
+R2
+Z20 DEx4 work 18 instruction_memory 0 22 ?>Q=HznGNd1fLLh5^1Ye72
+!i122 29
+l48
+Z21 L23 30
+Z22 V3^faizR]fU=VFNV:RI@V=2
+Z23 !s100 mHT]ejUC7fHBOAU?9C>L31
+R7
+32
+R8
+!i10b 1
+R9
+R17
+R18
+!i113 1
+R19
+R13
