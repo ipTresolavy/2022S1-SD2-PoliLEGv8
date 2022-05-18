@@ -1,1 +1,6 @@
-./build/**/work/**
+./build/**/work/_lib.qdb
+./build/**/work/_lib1_0.qdb
+./build/**/work/_lib1_0.qpg
+./build/**/work/_lib1_0.qtl
+./build/**/work/_vmake
+./tools/make_log

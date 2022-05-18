@@ -1,0 +1,93 @@
+m255
+K4
+z2
+!s11e vcom 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PolilegV8/build/ALU
+Ealu
+Z0 w1652544885
+Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z2 DPx4 ieee 11 numeric_bit 0 22 G2;d`f^X6V]cQEn8_38:i1
+!i122 1
+Z3 d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PolilegV8/tools
+Z4 8../hdl/ALU/alu.vhd
+Z5 F../hdl/ALU/alu.vhd
+l0
+Z6 L11 1
+Vf?bG46MoJLgMecPfhT^hQ0
+!s100 WIFV@]@;J3C1k@5oW8HR50
+Z7 OV;C;2020.1;71
+32
+Z8 !s110 1652880094
+!i10b 1
+Z9 !s108 1652880094.000000
+Z10 !s90 ../hdl/ALU/alu.vhd|-work|../build/ALU/work/|
+!s107 ../hdl/ALU/alu.vhd|
+!i113 1
+Z11 o-work ../build/ALU/work/
+Z12 tExplicit 1 CvgOpt 0
+Aalu_operation
+R1
+R2
+DEx4 work 3 alu 0 22 f?bG46MoJLgMecPfhT^hQ0
+!i122 1
+l48
+L24 50
+VGji5YVZ^g00R5=Ci>^4Un1
+!s100 0>FK;9;9baPJ1]]_Nkc861
+R7
+32
+R8
+!i10b 1
+R9
+R10
+Z13 !s107 ../hdl/ALU/alu.vhd|
+!i113 1
+R11
+R12
+Efull_adder
+Z14 w1652503112
+R1
+R2
+!i122 0
+R3
+Z15 8../hdl/ALU/full_adder.vhd
+Z16 F../hdl/ALU/full_adder.vhd
+l0
+R6
+VQH[f<BB=PY1D361FigN6;2
+!s100 0zSEQ;NL61?ILldO<LE;C1
+R7
+32
+R8
+!i10b 1
+R9
+Z17 !s90 ../hdl/ALU/full_adder.vhd|-work|../build/ALU/work/|
+Z18 !s107 ../hdl/ALU/full_adder.vhd|
+!i113 1
+R11
+R12
+Afull_adder_operation
+R1
+R2
+DEx4 work 10 full_adder 0 22 QH[f<BB=PY1D361FigN6;2
+!i122 0
+l29
+L25 28
+VTC69Pm=F_3BU4kYLA2J]g0
+!s100 ]iSba2[_SDKgZRI9Jk8h03
+R7
+32
+R8
+!i10b 1
+R9
+R17
+R18
+!i113 1
+R11
+R12
