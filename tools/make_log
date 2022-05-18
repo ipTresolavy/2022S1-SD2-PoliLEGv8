@@ -1,68 +1,68 @@
 Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
-Start time: 00:33:47 on May 15,2022
-vcom ../hdl/ALU/full_adder.vhd -work ALU/work/ 
+Start time: 13:42:31 on May 16,2022
+vcom ../hdl/ALU/full_adder.vhd -work ../build/ALU/work/ 
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package NUMERIC_BIT
 -- Compiling entity full_adder
 -- Compiling architecture full_adder_operation of full_adder
-End time: 00:33:47 on May 15,2022, Elapsed time: 0:00:00
+End time: 13:42:31 on May 16,2022, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
-Start time: 00:33:47 on May 15,2022
-vcom ../hdl/ALU/alu.vhd -work ALU/work/ 
+Start time: 13:42:31 on May 16,2022
+vcom ../hdl/ALU/alu.vhd -work ../build/ALU/work/ 
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package NUMERIC_BIT
 -- Compiling entity alu
 -- Compiling architecture alu_operation of alu
-End time: 00:33:47 on May 15,2022, Elapsed time: 0:00:00
+End time: 13:42:31 on May 16,2022, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 
 
 
 Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
-Start time: 00:33:47 on May 15,2022
-vcom ../hdl/Memory/data_memory.vhd -work Memory/work/ 
+Start time: 13:42:31 on May 16,2022
+vcom ../hdl/Memory/data_memory.vhd -work ../build/Memory/work/ 
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package NUMERIC_BIT
 -- Compiling entity data_memory
 -- Compiling architecture data_memory_operation of data_memory
-End time: 00:33:47 on May 15,2022, Elapsed time: 0:00:00
+End time: 13:42:31 on May 16,2022, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
-Start time: 00:33:47 on May 15,2022
-vcom ../hdl/Memory/instruction_memory.vhd -work Memory/work 
+Start time: 13:42:31 on May 16,2022
+vcom ../hdl/Memory/instruction_memory.vhd -work ../build/Memory/work 
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package NUMERIC_BIT
 -- Compiling entity instruction_memory
 -- Compiling architecture instruction_memory_operation of instruction_memory
-End time: 00:33:47 on May 15,2022, Elapsed time: 0:00:00
+End time: 13:42:31 on May 16,2022, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 
 
 
 Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
-Start time: 00:33:47 on May 15,2022
-vcom ../hdl/Register_File/d_register.vhdl -work Register_File/work 
+Start time: 13:42:31 on May 16,2022
+vcom ../hdl/Register_File/d_register.vhd -work ../build/Register_File/work 
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package NUMERIC_BIT
 -- Compiling entity d_register
 -- Compiling architecture memory of d_register
-End time: 00:33:47 on May 15,2022, Elapsed time: 0:00:00
+End time: 13:42:31 on May 16,2022, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
-Start time: 00:33:47 on May 15,2022
-vcom ../hdl/Register_File/register_file.vhd -work Register_File/work 
+Start time: 13:42:31 on May 16,2022
+vcom ../hdl/Register_File/register_file.vhd -work ../build/Register_File/work 
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package NUMERIC_BIT
 -- Compiling entity register_file
 -- Compiling architecture register_file_operation of register_file
-End time: 00:33:47 on May 15,2022, Elapsed time: 0:00:00
+End time: 13:42:31 on May 16,2022, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
 
 

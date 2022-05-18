@@ -17,6 +17,7 @@ entity datapath is
     );
     port(
         clock               : in bit;
+        uncond_branch       : in bit;
         reg_b_src           : in bit;
         branch              : in bit;
         mem_read            : in bit;
@@ -139,7 +140,7 @@ architecture datapath_operation of datapath is
     signal read_dynamic_data : bit_vector(63 downto 0);
     -- End data memory's signals
 
-    signal signal_extension_out : bit_vector(63 downto 0);
+    signal sign_extension_out : bit_vector(63 downto 0);
     signal pc_src : bit;
 
     begin
@@ -158,7 +159,7 @@ architecture datapath_operation of datapath is
         register_file port map (clock, instruction_mem_out(9 downto 5), reg_b_mux_out, instruction_mem_out(4 downto 0), reg_write_data_mux_out, reg_write, reg_a_data, reg_b_data);
 
         branch_alu:
-        alu port map ((signal_extension_out sll 2), pc_out, "0010", zero_flag_ground(1), branch_address, overflow_flag_ground(1), carry_out_flag_ground(1));
+        alu port map ((sign_extension_out sll 2), pc_out, "0010", zero_flag_ground(1), branch_address, overflow_flag_ground(1), carry_out_flag_ground(1));
 
         main_alu:
         alu port map (reg_a_data, alu_b_data_mux_out, alu_op, zero_flag, main_alu_out, overflow_flag_ground(2), carry_out_flag_ground(2));
@@ -177,14 +178,20 @@ architecture datapath_operation of datapath is
 
         with alu_src select
             alu_b_data_mux_out <= reg_b_data when '0',
-                                  signal_extension_out when others;
+                                  sign_extension_out when others;
 
-        pc_src <= branch and zero_flag;
+        pc_src <= (branch and zero_flag) or uncond_branch;
         with pc_src select
             pc_mux_out <= next_instruction_address when '0',
                           branch_address when others;
 
         -- TODO: Implement signal extension
+        -- with instruction_mem_out(31) & instruction_mem_out(26) select
+            -- sign_extension_out <= resize(signed(instruction_mem_out(25 downto 0)), sign_extension_out'length) when "01", -- Unconditional Branch
+                                  -- resize(signed(instruction_mem_out(20 downto 12)), sign_extension_out'length) when "10", -- Data transfer
+                                  -- resize(signed(instruction_mem_out(23 downto 5)), sign_extension_out'length) when "11", -- Conditional Branch
+                                  -- resize(signed(instruction_mem_out(21 downto 10)), sign_extension_out'length) when others, -- Conditional Branch
 
         instruction <= instruction_mem_out;
+
 end architecture datapath_operation;
