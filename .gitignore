@@ -1,2 +1,3 @@
-build/**/work/
+build/**/work/**
+!build/**/work/_info
 tools/make_log
