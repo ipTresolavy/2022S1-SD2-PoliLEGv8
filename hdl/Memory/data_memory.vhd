@@ -1,49 +1,62 @@
 -------------------------------------------------------
 --! @file data_memory.vhd
---! @brief implementação da RAM de dados do LEGv8
---! @author Igor Pontes Tresolavy (tresolavy@usp.br)
---! @date 2022-05-14
+--! @brief byte-addressable RAM
+--! @author Joao Pedro Selva (jpselva@usp.br)
+--! @date 2022-05-21
 -------------------------------------------------------
 
-library IEEE;
-use IEEE.numeric_bit.all;
+library ieee;
+use ieee.numeric_bit.all;
+use std.textio.all;
 
-entity data_memory is
-    generic(
-        addressable_range   : natural := 16
+entity data_memory is 
+    generic (
+        word_size_bytes : natural := 8;
+        addr_size       : natural := 16;
+        busy_time       : time    := 10 ns
+    ); 
+    port (
+        address                  : in  bit_vector(addr_size-1 downto 0);
+        write_data               : in  bit_vector(word_size_bytes*8-1 downto 0);
+        mem_enable, mem_write    : in  bit;
+        busy                     : out bit;
+        read_data                : out bit_vector(word_size_bytes*8-1 downto 0)
     );
-    port(
-        clock               : in  bit;
-        address, write_data : in  bit_vector(63 downto 0);
-        mem_read, mem_write : in  bit;
+end entity;
 
-        read_data           : out bit_vector(63 downto 0)
-    );
-end entity data_memory;
+architecture arch of data_memory is
+    constant mem_size : natural := 2**addr_size-1;
+    type mem_type is array(0 to mem_size-1) of
+        bit_vector(7 downto 0); 
 
-architecture data_memory_operation of data_memory is
+    signal mem : mem_type;
+    signal addr_number : natural;
+    signal busy_in : bit; -- internal busy signal
+begin
+    addr_number <= to_integer(unsigned(address));
+    busy <= busy_in;
 
-    type data_memory_type is array(0 to 2**addressable_range - 1) of bit_vector(63 downto 0);
-    signal programs_dynamic_data : data_memory_type;
-
-    signal read_data_copy : bit_vector(63 downto 0);
-
+    get_busy: process (mem_enable) is
     begin
+        if mem_enable = '1' then
+            busy_in <= '1';
+            busy_in <= '0' after busy_time;
+        end if;
+    end process get_busy;
 
-        write_to_mem:
-        process(clock)
-            begin
-                if (clock'event and clock = '1' and mem_write = '1') then
-                    programs_dynamic_data(to_integer(unsigned(address)) mod addressable_range) <= write_data;
-                end if;
-        end process;
+    finish: process (busy_in) is 
+    begin
+        if falling_edge(busy_in) then
+            if mem_write = '1' then
+                for byte in 0 to word_size_bytes-1 loop
+                    mem((addr_number + byte) mod mem_size) <= write_data((byte+1)*8-1 downto byte*8);
+                end loop;
+            end if;
 
-        with mem_read select
-            read_data_copy <= programs_dynamic_data(to_integer(unsigned(address)) mod addressable_range) when '1',
-                              read_data_copy when others;
+            for byte in 0 to word_size_bytes-1 loop
+                read_data((byte+1)*8-1 downto byte*8) <= mem((addr_number + byte) mod mem_size);
+            end loop;
+        end if;
+    end process finish;
 
-        read_data <= read_data_copy;
-
-
-
-end architecture data_memory_operation;
+end architecture;
