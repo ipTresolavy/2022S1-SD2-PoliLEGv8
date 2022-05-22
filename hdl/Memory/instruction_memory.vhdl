@@ -31,7 +31,7 @@ architecture memory of instruction_memory is
 
      -- memória rom
     type instruction_array is array(2**address_size - 1 downto 0) of bit_vector(word_size - 1 downto 0);
-    constant memory_instruction : instruction_array;
+    signal memory_instruction : instruction_array;
     attribute instruction_init_file: string;
     attribute instruction_init_file of memory_instruction: signal is file_name;
 
