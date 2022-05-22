@@ -49,20 +49,15 @@ begin
     end generate access_memory_generate;
     
     -- controla as saídas da memória levando em conta a temporização
-    enable_process: process(instruction_memory_enable)
+    enable_process: process
     begin
         if rising_edge(instruction_memory_enable) then
             busy <= '1';
-            busy <= '0' after busy_time;
         end if;
+        wait for BUSY_TIME;
+        busy <= '0';
+        instruction <= instruction_intermediary;
+        wait on instruction_memory_enable;
     end process enable_process;
     
-    -- atualizo a saída quando o dado pedido é estabilizado
-    busy_process: process(busy) 
-    begin
-        if falling_edge(busy) then
-            instruction <= instruction_intermediary;
-        end if;
-    end process busy_process;
-
 end architecture memory;
