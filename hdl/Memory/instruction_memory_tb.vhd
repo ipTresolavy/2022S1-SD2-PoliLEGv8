@@ -11,7 +11,7 @@ use ieee.numeric_bit.all;
 entity instruction_memory_tb is
 end entity;
 
-architecture tb of instruction_memory_tb is
+architecture testbench of instruction_memory_tb is
     constant ADDRESS_SIZE     : natural := 16;
     constant WORD_SIZE        : natural := 8;
     constant INSTRUCTION_SIZE : natural := 32;
@@ -64,10 +64,11 @@ begin
         -- aligned access
         instruction_memory_enable <= '1';        
         read_address_number <= 0;
-        wait for 1 ns; -- wait for busy to rise
-        wait until instruction_busy = '0';
-
+        wait until instruction_busy = '1';
+        wait for BUSY_TIME/2;
         instruction_memory_enable <= '0';        
+        wait for BUSY_TIME/2;
+
         assert (instruction = "11010010100000000000001010010011")
             report "aligned access failed" severity error;
 
@@ -75,7 +76,7 @@ begin
         wait for BUSY_TIME;
         instruction_memory_enable <= '1'; 
         read_address_number <= 1;
-        wait for 1 ns;
+        wait until instruction_busy = '1';
         wait until instruction_busy = '0';
 
         instruction_memory_enable <= '0';        
