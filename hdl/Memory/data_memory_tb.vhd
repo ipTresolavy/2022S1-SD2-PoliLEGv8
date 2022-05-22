@@ -51,8 +51,8 @@ begin
         mem_write <= '1';
         mem_enable <= '1';
         wait until busy = '1';
-        mem_write <= '0';
         wait until busy = '0';
+        mem_write <= '0';
         mem_enable <= '0';
         wait for busy_time; -- wait random amount of time
 
@@ -62,8 +62,8 @@ begin
         mem_write <= '1';
         mem_enable <= '1';
         wait until busy = '1';
-        mem_write <= '0';
         wait until busy = '0';
+        mem_write <= '0';
         mem_enable <= '0';
         wait for busy_time; -- wait random amount of time
 
