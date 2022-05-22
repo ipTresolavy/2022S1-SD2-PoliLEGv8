@@ -1,3 +1,5 @@
 build/**/work/**
 !build/**/work/_info
 tools/make_log
+build/**/transcript
+build/**/vsim.wlf

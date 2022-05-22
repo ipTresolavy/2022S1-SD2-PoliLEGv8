@@ -9,12 +9,12 @@ library ieee;
 use ieee.numeric_bit.all;
 use std.textio.all;
 
-entity data_memory is 
+entity data_memory is
     generic (
         word_size_bytes : natural := 8;
         addr_size       : natural := 16;
         busy_time       : time    := 10 ns
-    ); 
+    );
     port (
         address                  : in  bit_vector(addr_size-1 downto 0);
         write_data               : in  bit_vector(word_size_bytes*8-1 downto 0);
@@ -26,8 +26,8 @@ end entity;
 
 architecture arch of data_memory is
     constant mem_size : natural := 2**addr_size-1;
-    type mem_type is array(0 to mem_size-1) of
-        bit_vector(7 downto 0); 
+    type mem_type is array(0 to mem_size) of
+        bit_vector(7 downto 0);
 
     signal mem : mem_type;
     signal addr_number : natural;
@@ -44,7 +44,7 @@ begin
         end if;
     end process get_busy;
 
-    finish: process (busy_in) is 
+    finish: process (busy_in) is
     begin
         if falling_edge(busy_in) then
             if mem_write = '1' then
