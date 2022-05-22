@@ -10,46 +10,46 @@ z2
 cModel Technology
 d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PoliLEGv8/build/Memory
 Edata_memory
-Z0 w1653260395
+Z0 w1653263380
 Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
 Z2 DPx4 ieee 11 numeric_bit 0 22 G2;d`f^X6V]cQEn8_38:i1
-!i122 11
+!i122 17
 Z3 d/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/build/Memory
-Z4 8../../hdl/Memory/data_memory.vhd
-Z5 F../../hdl/Memory/data_memory.vhd
+Z4 8/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory.vhd
+Z5 F/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory.vhd
 l0
 L12 1
-VbLd3aSQGf??V9fI2Ugem=0
+VAQ9XE8^kT4hQNoPdMjN?S1
 !s100 N`mo2ZHG:aPZ5B:1i1B1c1
 Z6 OV;C;2020.1;71
 32
-Z7 !s110 1653261633
+Z7 !s110 1653263401
 !i10b 1
-Z8 !s108 1653261632.000000
-Z9 !s90 ../../hdl/Memory/data_memory.vhd|-work|work/|
-!s107 ../../hdl/Memory/data_memory.vhd|
+Z8 !s108 1653263401.000000
+Z9 !s90 -reportprogress|300|-work|work|/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory.vhd|
+Z10 !s107 /home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory.vhd|
 !i113 1
-Z10 o-work work/
-Z11 tExplicit 1 CvgOpt 0
+Z11 o-work work
+Z12 tExplicit 1 CvgOpt 0
 Aarch
 R1
 R2
-DEx4 work 11 data_memory 0 22 bLd3aSQGf??V9fI2Ugem=0
-!i122 11
+DEx4 work 11 data_memory 0 22 AQ9XE8^kT4hQNoPdMjN?S1
+!i122 17
 l35
-Z12 L27 36
-VA3iL]Piz;=E<=dY8?YDF10
-Z13 !s100 S^J]NJ6J0H>n>TZmOcQYk1
+L27 32
+VQbFk<zQ2iN0bAeN=8]WH@0
+!s100 W9T9_?R@^;aHD59HQDXL91
 R6
 32
 R7
 !i10b 1
 R8
 R9
-Z14 !s107 ../../hdl/Memory/data_memory.vhd|
-!i113 1
 R10
+!i113 1
 R11
+R12
 Adata_memory_operation
 R1
 R2
@@ -61,77 +61,77 @@ V8Tz8NAHch3f@5h8N_e`dR1
 !s100 M5gL2T<n1L>IVkT<oYI?=0
 R6
 32
-Z15 !s110 1653014605
+Z13 !s110 1653014605
 !i10b 1
-Z16 !s108 1653014605.000000
-Z17 !s90 ../hdl/Memory/data_memory.vhd|-work|../build/Memory/work/|
-Z18 !s107 ../hdl/Memory/data_memory.vhd|
+Z14 !s108 1653014605.000000
+!s90 ../hdl/Memory/data_memory.vhd|-work|../build/Memory/work/|
+!s107 ../hdl/Memory/data_memory.vhd|
 !i113 1
-Z19 o-work ../build/Memory/work/
-R11
-Z20 d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PoliLEGv8/tools
+o-work ../build/Memory/work/
+R12
+Z15 d/home/ipontes3olavy/third_semester/digital_systems_II/EPs/PoliLEGv8/tools
 w1652588382
-Z21 F../hdl/Memory/data_memory.vhd
-Z22 8../hdl/Memory/data_memory.vhd
+F../hdl/Memory/data_memory.vhd
+8../hdl/Memory/data_memory.vhd
 Edata_memory_tb
-Z23 w1653261410
-!i122 10
+Z16 w1653261734
+!i122 18
 R3
-Z24 8../../hdl/Memory/data_memory_tb.vhd
-Z25 F../../hdl/Memory/data_memory_tb.vhd
+Z17 8/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory_tb.vhd
+Z18 F/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory_tb.vhd
 l0
 L8 1
-VUT37zRmnzz2?CDC?9U[2^0
+VLR2FQi?F9XHZ1e:[EOOBE1
 !s100 GO`3bd7Din>KW5g_G<8`Z0
 R6
 32
-Z26 !s110 1653261416
+R7
 !i10b 1
-Z27 !s108 1653261416.000000
-Z28 !s90 ../../hdl/Memory/data_memory_tb.vhd|-work|work/|
-Z29 !s107 ../../hdl/Memory/data_memory_tb.vhd|
+R8
+Z19 !s90 -reportprogress|300|-work|work|/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory_tb.vhd|
+!s107 /home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory_tb.vhd|
 !i113 1
-R10
 R11
+R12
 Atb
-DEx4 work 14 data_memory_tb 0 22 UT37zRmnzz2?CDC?9U[2^0
-!i122 10
+Z20 DEx4 work 14 data_memory_tb 0 22 LR2FQi?F9XHZ1e:[EOOBE1
+!i122 18
 l38
-L11 85
-V4[_Ym]oU]0KL@E[M1QL0P3
-!s100 QR<D?M`CW=oe=c@RdiJo?0
+Z21 L11 85
+Z22 VCTIg_I;gUDhflFo_CN3ln3
+Z23 !s100 QR<D?M`CW=oe=c@RdiJo?0
 R6
 32
-R26
+R7
 !i10b 1
-R27
-R28
-R29
+R8
+R19
+Z24 !s107 /home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/hdl/Memory/data_memory_tb.vhd|
 !i113 1
-R10
 R11
+R12
 Einstruction_memory
-Z30 w1653259871
+Z25 w1653259871
 R1
 R2
 !i122 6
-Z31 d/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/tools
-Z32 8../hdl/Memory/instruction_memory.vhd
-Z33 F../hdl/Memory/instruction_memory.vhd
+Z26 d/home/ip_tresolavy/third_semester/digital_systems_II/EPs/2022S1-SD2-PoliLEGv8/tools
+Z27 8../hdl/Memory/instruction_memory.vhd
+Z28 F../hdl/Memory/instruction_memory.vhd
 l0
 L14 1
 V<2VTfXB<L6eMOYA`DTgFZ0
 !s100 ?CNZ3<=5?zDQd2PUO>EGZ1
 R6
 32
-Z34 !s110 1653261278
+Z29 !s110 1653261278
 !i10b 1
-Z35 !s108 1653261278.000000
-Z36 !s90 ../hdl/Memory/instruction_memory.vhd|-work|../build/Memory/work|
-Z37 !s107 ../hdl/Memory/instruction_memory.vhd|
+Z30 !s108 1653261278.000000
+Z31 !s90 ../hdl/Memory/instruction_memory.vhd|-work|../build/Memory/work|
+Z32 !s107 ../hdl/Memory/instruction_memory.vhd|
 !i113 1
-Z38 o-work ../build/Memory/work
-R11
+Z33 o-work ../build/Memory/work
+R12
 Amemory
 R1
 R2
@@ -143,14 +143,14 @@ V;YS8Tl1k@z1MJKRmMiL?n0
 !s100 5VElWAD^B?HNATfmSG48I0
 R6
 32
-R34
+R29
 !i10b 1
-R35
-R36
-R37
+R30
+R31
+R32
 !i113 1
-R38
-R11
+R33
+R12
 Ainstruction_memory_operation
 R1
 R2
@@ -162,13 +162,13 @@ VQQ`PMHNTS>:8^jaQ@ZDTW3
 !s100 mHT]ejUC7fHBOAU?9C>L31
 R6
 32
-R15
+R13
 !i10b 1
-R16
-R36
-R37
+R14
+R31
+R32
 !i113 1
-R38
-R11
-R20
+R33
+R12
+R15
 w1652583103
