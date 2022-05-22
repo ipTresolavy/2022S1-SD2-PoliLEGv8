@@ -16,12 +16,12 @@ entity instruction_memory is
         address_size: natural := 16;
         word_size: natural := 8;
         instruction_size: natural := 32;
-        file_name: string := "instruction.mif"; -- arquivo de carga inicial 
+        file_name: string := "instruction.dat"; -- arquivo de carga inicial 
         busy_time: time := 100 ns -- tempo de atraso da memória 
     );
     port(
         read_address: in bit_vector(address_size - 1 downto 0);
-        instruction_memory_enable: in bit;
+        instruction_enable: in bit;
         instruction: out bit_vector(instruction_size - 1 downto 0);
         instruction_busy: out bit
     );
@@ -29,11 +29,25 @@ end entity instruction_memory;
 
 architecture memory of instruction_memory is
 
-     -- memória rom
     type instruction_array is array(2**address_size - 1 downto 0) of bit_vector(word_size - 1 downto 0);
-    signal memory_instruction : instruction_array;
-    attribute instruction_init_file: string;
-    attribute instruction_init_file of memory_instruction: signal is file_name;
+
+    -- faz a carga inicial na memória rom usando arquivo .dat
+    impure function init_instruction_memory(arquivo : in string) return instruction_array is
+        file instruction_file : text open read_mode is arquivo;
+        variable file_line : line;
+        variable instruction_vector : bit_vector(word_size - 1 downto 0);
+        variable memory_instruction : instruction_array;
+    begin
+        for i in instruction_array'range loop
+            readline(instruction_file, file_line);
+            read(file_line, instruction_vector);
+            memory_instruction(i) := instruction_vector;
+        end loop;
+        return memory_instruction;
+    end function;
+
+     -- memória rom
+    constant memory_instruction: instruction_array := init_instruction_memory(file_name);
 
     -- sinais intermediários
     signal busy: bit;
@@ -51,13 +65,13 @@ begin
     -- controla as saídas da memória levando em conta a temporização
     enable_process: process
     begin
-        if rising_edge(instruction_memory_enable) then
+        if rising_edge(instruction_enable) then
             busy <= '1';
         end if;
-        wait for BUSY_TIME;
+        wait for busy_time;
         busy <= '0';
         instruction <= instruction_intermediary;
-        wait on instruction_memory_enable;
+        wait on instruction_enable;
     end process enable_process;
     
 end architecture memory;
