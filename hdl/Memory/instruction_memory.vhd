@@ -35,7 +35,7 @@ architecture memory of instruction_memory is
     impure function init_instruction_memory(arquivo : in string) return instruction_array is
         file instruction_file : text open read_mode is arquivo;
         variable file_line : line;
-        variable instruction_vector : bit_vector(wordSize - 1 downto 0);
+        variable instruction_vector : bit_vector(word_size - 1 downto 0);
         variable memory_instruction : instruction_array;
     begin
         for i in instruction_array'range loop
