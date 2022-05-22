@@ -59,13 +59,13 @@ begin
 
     tb: process is
     begin
-        instruction_memory_enable <= '1';        
         wait for BUSY_TIME;
 
         -- aligned access
         instruction_memory_enable <= '1';        
         read_address_number <= 0;
-        wait for BUSY_TIME;
+        wait for 1 ns; -- wait for busy to rise
+        wait until instruction_busy = '0';
 
         instruction_memory_enable <= '0';        
         assert (instruction = "11010010100000000000001010010011")
@@ -75,7 +75,8 @@ begin
         wait for BUSY_TIME;
         instruction_memory_enable <= '1'; 
         read_address_number <= 1;
-        wait for BUSY_TIME;
+        wait for 1 ns;
+        wait until instruction_busy = '0';
 
         instruction_memory_enable <= '0';        
         assert (instruction = "11010010100000000000001010010011")
