@@ -1,4 +1,11 @@
 
+-------------------------------------------------------
+--! @file instruction_memory.vhdl
+--! @brief memória de instrução do tipo MROM
+--! @author Joao Pedro Cabral Miranda (miranda.jp@usp.br)
+--! @date 2022-05-21
+-------------------------------------------------------
+
 library ieee;
 use ieee.numeric_bit.all;
 library std;
@@ -22,25 +29,13 @@ end entity instruction_memory;
 
 architecture memory of instruction_memory is
 
+     -- memória rom
     type instruction_array is array(2**address_size - 1 downto 0) of bit_vector(word_size - 1 downto 0);
-    
-    -- função responsável pela carga inicial
-    impure function init_instruction_memory(arquivo : in string) return instruction_array is
-        file instruction_file : text open read_mode is arquivo;
-        variable file_line : line;
-        variable instruction_vector : bit_vector(word_size - 1 downto 0);
-        variable memory_instruction: instruction_array;
-    begin
-        for i in instruction_array'range loop
-            readline(instruction_file, file_line);
-            read(file_line, instruction_vector);
-            memory_instruction(i) := instruction_vector;
-        end loop;
-        return memory_instruction;
-    end function;
-    
-    -- memória rom
-    constant memory_instruction : instruction_array := init_instruction_memory(file_name);
+    constant memory_instruction : instruction_array;
+    attribute instruction_init_file: string;
+    attribute instruction_init_file of memory_instruction: signal is file_name;
+
+    -- sinais intermediários
     signal busy: bit;
     signal instruction_intermediary: bit_vector(instruction_size - 1 downto 0);
 
@@ -62,6 +57,7 @@ begin
         end if;
     end process enable_process;
     
+    -- atualizo a saída quando o dado pedido é estabilizado
     busy_process: process(busy) 
     begin
         if falling_edge(busy) then
