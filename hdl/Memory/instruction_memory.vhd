@@ -29,7 +29,7 @@ end entity instruction_memory;
 
 architecture memory of instruction_memory is
 
-    type instruction_array is array(2**address_size - 1 downto 0) of bit_vector(word_size - 1 downto 0);
+    type instruction_array is array(0 to 2**address_size - 1) of bit_vector(word_size - 1 downto 0);
 
     -- faz a carga inicial na memória rom usando arquivo .dat
     impure function init_instruction_memory(arquivo : in string) return instruction_array is
@@ -47,7 +47,7 @@ architecture memory of instruction_memory is
     end function;
 
      -- memória rom
-    constant memory_instruction: instruction_array := init_instruction_memory(file_name);
+    signal memory_instruction: instruction_array := init_instruction_memory(file_name);
 
     -- sinais intermediários
     signal busy: bit;
@@ -59,7 +59,7 @@ begin
     
     -- uso for generate, pois precisamos acessar mais de 1 palavra da memória para obter todos os instruction_size bits
     access_memory_generate: for i in instruction_size/word_size - 1 downto 0 generate
-        instruction_intermediary((i + 1)*word_size - 1 downto i*word_size) <= memory_instruction(to_integer(unsigned(read_address)) + i);
+        instruction_intermediary((i + 1)*word_size - 1 downto i*word_size) <= memory_instruction(to_integer(unsigned(read_address)) + instruction_size/word_size - 1 - i);
     end generate access_memory_generate;
     
     -- controla as saídas da memória levando em conta a temporização
