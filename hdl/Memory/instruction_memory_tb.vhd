@@ -12,7 +12,7 @@ entity instruction_memory_tb is
 end entity;
 
 architecture testbench of instruction_memory_tb is
-    constant ADDRESS_SIZE     : natural := 16;
+    constant ADDRESS_SIZE     : natural := 7;
     constant WORD_SIZE        : natural := 8;
     constant INSTRUCTION_SIZE : natural := 32;
     constant FILE_NAME        : string  := "../../tools/fibonacci.dat";
@@ -61,7 +61,7 @@ begin
     begin
         wait for BUSY_TIME;
 
-        -- aligned access
+        -- read at memory[0]
         instruction_enable <= '1';        
         read_address_number <= 0;
         wait until instruction_busy = '1';
@@ -69,18 +69,19 @@ begin
 
         instruction_enable <= '0';        
         assert (instruction = "11010010100000000000001010010011")
-            report "aligned access failed" severity error;
+            report "read at memory[0] failed" severity error;
 
-        -- unnaligned access
-        wait for BUSY_TIME;
-        instruction_enable <= '1'; 
-        read_address_number <= 1;
+        wait for BUSY_TIME; -- wait random amount of time
+
+        -- read at memory[4]
+        instruction_enable <= '1';        
+        read_address_number <= 4;
         wait until instruction_busy = '1';
         wait until instruction_busy = '0';
 
         instruction_enable <= '0';        
-        assert (instruction = "11010010100000000000001010010011")
-            report "unaligned access failed" severity error;
+        assert (instruction = "10001011000111110000001111110001")
+            report "read at memory[0] failed" severity error;
 
         wait;
     end process tb;
