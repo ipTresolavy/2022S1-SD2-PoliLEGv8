@@ -31,32 +31,31 @@ architecture arch of data_memory is
 
     signal mem : mem_type;
     signal addr_number : natural;
-    signal busy_in : bit; -- internal busy signal
 begin
     addr_number <= to_integer(unsigned(address));
-    busy <= busy_in;
 
-    get_busy: process (mem_enable) is
+    raise_busy: process is
     begin
         if mem_enable = '1' then
-            busy_in <= '1';
-            busy_in <= '0' after busy_time;
-        end if;
-    end process get_busy;
+            busy <= '1';
+            wait for busy_time;
 
-    finish: process (busy_in) is
-    begin
-        if falling_edge(busy_in) then
             if mem_write = '1' then
+                -- copy input to memory and to output
                 for byte in 0 to word_size_bytes-1 loop
-                    mem((addr_number + byte) mod mem_size) <= write_data((byte+1)*8-1 downto byte*8);
+                    mem((addr_number + word_size_bytes - byte - 1) mod mem_size) <= write_data((byte+1)*8-1 downto byte*8);
+                    read_data((byte+1)*8-1 downto byte*8) <= write_data((byte+1)*8-1 downto byte*8);
+                end loop;
+            else
+                -- copy memory to output
+                for byte in 0 to word_size_bytes-1 loop
+                    read_data((byte+1)*8-1 downto byte*8) <= mem((addr_number + word_size_bytes - byte - 1) mod mem_size);
                 end loop;
             end if;
 
-            for byte in 0 to word_size_bytes-1 loop
-                read_data((byte+1)*8-1 downto byte*8) <= mem((addr_number + byte) mod mem_size);
-            end loop;
+            busy <= '0';
         end if;
-    end process finish;
+        wait on mem_enable;
+    end process raise_busy;
 
 end architecture;
