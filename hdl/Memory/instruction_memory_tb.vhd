@@ -15,7 +15,7 @@ architecture testbench of instruction_memory_tb is
     constant ADDRESS_SIZE     : natural := 16;
     constant WORD_SIZE        : natural := 8;
     constant INSTRUCTION_SIZE : natural := 32;
-    constant FILE_NAME        : string  := "../../tools/fibonacci.mif";
+    constant FILE_NAME        : string  := "../../tools/fibonacci.dat";
     constant BUSY_TIME        : time    := 100 ns;
 
     component instruction_memory is
@@ -23,22 +23,22 @@ architecture testbench of instruction_memory_tb is
             address_size     : natural := 16;
             word_size        : natural := 8;
             instruction_size : natural := 32;
-            file_name        : string  := "instruction.mif";
+            file_name        : string  := "instruction.dat";
             busy_time        : time    := 100 ns
         );
         port(
-            read_address              : in  bit_vector(address_size - 1 downto 0);
-            instruction_memory_enable : in  bit;
-            instruction               : out bit_vector(instruction_size - 1 downto 0);
-            instruction_busy          : out bit
+            read_address       : in  bit_vector(address_size - 1 downto 0);
+            instruction_enable : in  bit;
+            instruction        : out bit_vector(instruction_size - 1 downto 0);
+            instruction_busy   : out bit
         );
     end component;
 
-    signal read_address_number       : natural; 
-    signal read_address              : bit_vector(ADDRESS_SIZE-1 downto 0);
-    signal instruction_memory_enable : bit;
-    signal instruction               : bit_vector(INSTRUCTION_SIZE-1 downto 0);
-    signal instruction_busy          : bit;
+    signal read_address_number : natural; 
+    signal read_address        : bit_vector(ADDRESS_SIZE-1 downto 0);
+    signal instruction_enable  : bit;
+    signal instruction         : bit_vector(INSTRUCTION_SIZE-1 downto 0);
+    signal instruction_busy    : bit;
 begin
     dut: instruction_memory    
         generic map (
@@ -50,7 +50,7 @@ begin
         )
         port map (
             read_address => read_address,
-            instruction_memory_enable => instruction_memory_enable,
+            instruction_enable => instruction_enable,
             instruction => instruction,
             instruction_busy => instruction_busy
         );
@@ -62,24 +62,23 @@ begin
         wait for BUSY_TIME;
 
         -- aligned access
-        instruction_memory_enable <= '1';        
+        instruction_enable <= '1';        
         read_address_number <= 0;
         wait until instruction_busy = '1';
-        wait for BUSY_TIME/2;
-        instruction_memory_enable <= '0';        
-        wait for BUSY_TIME/2;
+        wait until instruction_busy = '0';
 
+        instruction_enable <= '0';        
         assert (instruction = "11010010100000000000001010010011")
             report "aligned access failed" severity error;
 
         -- unnaligned access
         wait for BUSY_TIME;
-        instruction_memory_enable <= '1'; 
+        instruction_enable <= '1'; 
         read_address_number <= 1;
         wait until instruction_busy = '1';
         wait until instruction_busy = '0';
 
-        instruction_memory_enable <= '0';        
+        instruction_enable <= '0';        
         assert (instruction = "11010010100000000000001010010011")
             report "unaligned access failed" severity error;
 
