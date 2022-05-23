@@ -13,7 +13,8 @@ entity data_memory is
     generic (
         word_size_bytes : natural := 8;
         addr_size       : natural := 16;
-        busy_time       : time    := 10 ns
+        busy_time       : time    := 10 ns;
+        data_file_name  : string  := "mem.dat"
     );
     port (
         address                  : in  bit_vector(addr_size-1 downto 0);
@@ -25,11 +26,23 @@ entity data_memory is
 end entity;
 
 architecture arch of data_memory is
-    constant mem_size : natural := 2**addr_size-1;
-    type mem_type is array(0 to mem_size) of
+    constant mem_size : natural := 2**addr_size;
+    type mem_type is array(0 to mem_size-1) of
         bit_vector(7 downto 0);
 
-    signal mem : mem_type;
+    impure function load_file(filename : string) return mem_type is
+        file     read_file : text open read_mode is filename;
+        variable file_line : line;
+        variable temp_vec  : mem_type;
+    begin
+        for k in temp_vec'range loop
+            readline(read_file, file_line); 
+            read(file_line, temp_vec(k));
+        end loop;
+        return temp_vec;
+    end function; 
+
+    signal mem : mem_type := load_file(data_file_name);
     signal addr_number : natural;
 begin
     addr_number <= to_integer(unsigned(address));
