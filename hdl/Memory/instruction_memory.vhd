@@ -47,7 +47,7 @@ architecture memory of instruction_memory is
     end function;
 
      -- memória rom
-    signal memory_instruction: instruction_array := init_instruction_memory(file_name);
+    constant memory_instruction: instruction_array := init_instruction_memory(file_name);
 
     -- sinais intermediários
     signal busy: bit;
