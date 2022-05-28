@@ -3,3 +3,4 @@ tools/make_log
 build/**/transcript
 build/**/vsim.wlf
 build/**/modelsim.ini
+doc/*.xopp
