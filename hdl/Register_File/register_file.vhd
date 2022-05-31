@@ -18,9 +18,9 @@ entity register_file is
     port(
         clock                   : in  bit;
         reset                   : in  bit;
-        read_reg_a              : in  bit_vector(integer(floor(log2(real(amount_of_regs))))-1 downto 0);
-        read_reg_b              : in  bit_vector(integer(floor(log2(real(amount_of_regs))))-1 downto 0);
-        write_reg               : in  bit_vector(integer(floor(log2(real(amount_of_regs))))-1 downto 0);
+        read_reg_a              : in  bit_vector(integer(log2(real(amount_of_regs))))-1 downto 0);
+        read_reg_b              : in  bit_vector(integer(log2(real(amount_of_regs))))-1 downto 0);
+        write_reg               : in  bit_vector(integer(log2(real(amount_of_regs))))-1 downto 0);
         write_data              : in  bit_vector(register_width-1 downto 0);
         write_enable            : in  bit;
 
