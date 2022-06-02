@@ -16,11 +16,11 @@ entity DataFlow is
         reset: in bit;
         -- Instruction Memory
         instruction: in bit_vector(31 downto 0);
-        instruction_read_address: out bit_vector(integer(floor(log2(real(instruction_memory_size)))) - 1 downto 0);
+        instruction_read_address: out bit_vector(integer(log2(real(instruction_memory_size))) - 1 downto 0);
         -- Data Memory
         read_data: in bit_vector(word_size - 1 downto 0);
         write_data: out bit_vector(word_size - 1 downto 0);
-        data_memory_address: out bit_vector(integer(floor(log2(real(data_memory_size)))) - 1 downto 0);
+        data_memory_address: out bit_vector(integer(log2(real(data_memory_size))) - 1 downto 0);
         -- To Control Unit
         opcode: out bit_vector(10 downto 0);
         zero: out bit;
@@ -33,17 +33,28 @@ entity DataFlow is
         mov_enable: in bit;
         z_k: in bit;
             -- ALU's signals
-        alu_control: in bit_vector(3 downto 0);
+        alu_control: in bit_vector(2 downto 0);
+        set_flags: in bit;
+        shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
         alu_b_src: in bit_vector(1 downto 0);
+        	-- mul_div_unit's signals
+        div : in bit;   -- div = 1 if division
+        mul_div_unsgn : in bit; -- unsgn = 1 if unsigned operation
+        mul_div_src: in bit;
+        mul_div_busy : out bit;
+        mul_div_enable: in bit;
             --ALU_pc's signals
         alu_pc_b_src: in bit;
             -- PC's signals
         pc_src: in bit;
         pc_enable: in bit;
+        	-- monitor's signals
+        monitor_enable: in bit;
             -- Instruction Memory's signals
+        read_register_a_src: in bit;
         read_register_b_src: in bit;
         write_register_src: in bit;
-        write_register_data_src: in bit;
+        write_register_data_src: in bit_vector(1 downto 0);
         write_register_enable: in bit;
             -- Data Memory's signals
         data_memory_src: in bit_vector(1 downto 0)
@@ -53,24 +64,40 @@ end entity DataFlow;
 architecture structural of DataFlow is
 
     component ALU is
-        generic(
-            word_size: natural := 64
-        );
-        port (
-            clock: in bit;
-            reset: in bit;
-            A: in bit_vector(word_size - 1 downto 0); -- ALU A
-            B: in bit_vector(word_size - 1 downto 0); -- ALU B
-            alu_control: in bit_vector(3 downto 0); -- ALU Control's signal
-            Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
-            Zero: out bit; -- Vale 1, caso Y = 0
-            -- Registradores de flags
-            Zero_r: out bit;
-            Overflow_r: out bit;
-            Carry_out_r: out bit;
-            Negative_r: out bit
-        );
+    	generic(
+		word_size: natural := 64
+	);
+	port (
+		clock: in bit;
+		reset: in bit;
+		A: in bit_vector(word_size - 1 downto 0); -- ALU A
+		B: in bit_vector(word_size - 1 downto 0); -- ALU B
+		alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
+		set_flags: in bit;
+		shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+		Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
+		Zero: out bit; -- Vale 1, caso Y = 0
+		-- Registradores de flags
+		Zero_r: out bit;
+		Overflow_r: out bit;
+		Carry_out_r: out bit;
+		Negative_r: out bit
+	);
     end component ALU;
+    
+    component mul_div_unit is
+    	generic (
+		word_s : natural
+	);
+	port (
+		operand_A, operand_B : in bit_vector(word_s-1 downto 0);
+		enable, reset, clk : bit;
+		div : in bit;   -- div = 1 if division
+		unsgn : in bit; -- unsgn = 1 if unsigned operation
+		busy : out bit;
+		result_high, result_low : out bit_vector(word_s-1 downto 0)
+	);
+	end component;
 
     component register_d is
         generic (
@@ -146,9 +173,9 @@ architecture structural of DataFlow is
         port(
             clock                   : in  bit;
             reset                   : in  bit;
-            read_reg_a              : in  bit_vector(integer(floor(log2(real(amount_of_regs))))-1 downto 0);
-            read_reg_b              : in  bit_vector(integer(floor(log2(real(amount_of_regs))))-1 downto 0);
-            write_reg               : in  bit_vector(integer(floor(log2(real(amount_of_regs))))-1 downto 0);
+            read_reg_a              : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
+            read_reg_b              : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
+            write_reg               : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
             write_data              : in  bit_vector(register_width-1 downto 0);
             write_enable            : in  bit;
             reg_a_data              : out bit_vector(register_width-1 downto 0);
@@ -176,6 +203,11 @@ architecture structural of DataFlow is
     -- Alu
     signal alu_b: bit_vector(word_size - 1 downto 0);
     signal alu_out: bit_vector(word_size - 1 downto 0);
+    
+    -- mul_div_unit
+    signal mul_div_low: bit_vector(word_size - 1 downto 0);
+    signal mul_div_high: bit_vector(word_size - 1 downto 0);
+    signal mul_div_out: bit_vector(word_size - 1 downto 0);
 
     -- MOV
     signal mov_immediate: bit_vector(word_size - 1 downto 0);
@@ -189,6 +221,13 @@ architecture structural of DataFlow is
     -- PC
     signal pc_in: bit_vector(word_size - 1 downto 0);
     signal pc_out: bit_vector(word_size - 1 downto 0);
+    
+    -- Monitor & STXR
+    signal monitor_out: bit_vector(4 downto 0);
+    signal stxr_try_xor: bit_vector(word_size - 1 downto 0);
+    signal stxr_try_vector: bit_vector(word_size - 1 downto 0);
+    signal stxr_try_intermediary: bit_vector(1 downto 0);
+    signal stxr_try: bit_vector(word_size - 1 downto 0);
 
     -- Register File
     signal read_data_a: bit_vector(word_size - 1 downto 0);
@@ -212,8 +251,12 @@ begin
     sign_extender: component sign_extension_unit generic map(word_size) port map(instruction, immediate_extended);
 
     -- ALU
-    ULA: component ALU generic map(word_size) port map(clock, reset, read_data_a, alu_b, alu_control, alu_out, zero, zero_r, overflow_r, carry_out_r, negative_r);
+    ULA: component ALU generic map(word_size) port map(clock, reset, read_data_a, alu_b, alu_control, set_flags, shift_amount, alu_out, zero, zero_r, overflow_r, carry_out_r, negative_r);
     alu_b_mux: component mux4x1 generic map(word_size) port map(read_data_b, alu_pc_out, pc_out, immediate_extended, alu_b_src, alu_b);
+
+	--mul_div_unit
+	mul_div: component mul_div_unit generic map(word_size) port map(read_data_a, read_data_b, mul_div_enable, clock, reset, div, mul_div_unsgn, mul_div_busy, mul_div_high, mul_div_low);
+	mul_div_mux: component mux2x1 generic map(word_size) port map(mul_div_low, mul_div_high, mul_div_src, mul_div_out);
 
     -- ALU_pc
     ULA_pc: component ALU_pc generic map(word_size) port map(pc_out, alu_pc_b, alu_pc_out);
@@ -224,9 +267,12 @@ begin
     -- PC
     PC: component register_d generic map(word_size, 0) port map(pc_in, clock, pc_enable, reset, pc_out);
     pc_mux: component mux2x1 generic map(word_size) port map(alu_out, alu_pc_out, pc_src, pc_in);
+    
+    -- Monitor
+    Monitor: component register_d generic map(5) port map(instruction(9 downto 5), clock, monitor_enable, reset, monitor_out);
 
     -- Instruction Memory
-    instruction_read_address <= bit_vector(resize(unsigned(pc_out), integer(floor(log2(real(instruction_memory_size))))));
+    instruction_read_address <= bit_vector(resize(unsigned(pc_out), integer(log2(real(instruction_memory_size)))));
 
     -- MOV
     MOVZ_K: component MOV generic map(word_size) port map(write_register_data_mux_out, write_register_data, mov_immediate, instruction(22 downto 21), mov_enable, z_k);
@@ -234,9 +280,17 @@ begin
 
     -- Register File
     Banco_de_registradores: component register_file generic map(32, word_size, 0) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
+    read_register_a_mux: component mux2x1 generic map(5) port map(instruction(9 downto 5), monitor_out, read_register_a_src, read_register_a);
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
     write_register_mux: component mux2x1 generic map(5) port map(instruction(4 downto 0), "11110", write_register_src, write_register);
-    write_register_data_mux: component mux2x1 generic map(word_size) port map(alu_out, read_data_mux_out, write_register_data_src, write_register_data_mux_out);
+    write_register_data_mux: component mux4x1 generic map(word_size) port map(alu_out, read_data_mux_out, mul_div_out, stxr_try, write_register_data_src, write_register_data_mux_out);
+    stxr_try_xor <= read_data_mux_out xor alu_out;
+    stxr_try_vector(0) <= stxr_try_xor(0);
+    stxr_try_generate: for i in word_size - 1 downto 1 generate
+        stxr_try_vector(i) <= (stxr_try_vector(i - 1) or stxr_try_xor(i));
+    end generate stxr_try_generate;
+    stxr_try_intermediary <= '0' & stxr_try_vector(word_size - 1);
+    stxr_try <= bit_vector(resize(unsigned(stxr_try_intermediary), word_size));
 
     -- Data Memory
     data_memory_address <= alu_out;
