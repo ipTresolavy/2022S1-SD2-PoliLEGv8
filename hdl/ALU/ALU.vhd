@@ -112,17 +112,17 @@ begin
     Y <= alu_out;
 
     -- Registradores de flags
-    registrador_zero: component register_d_bin generic map(0) port map(zero_in, set_flags, reset, Zero_r);
+    registrador_zero: component register_d_bin port map(zero_in, set_flags, reset, Zero_r);
     zero_vector(0) <= alu_out(0);
     z_generate: for i in size - 1 downto 1 generate
         zero_vector(i) <= (zero_vector(i - 1) or alu_out(i));
     end generate z_generate;
     zero_in <= not zero_vector(size - 1);
     Zero <= zero_in;
-    registrador_co: component register_d_bin generic map(0) port map(carry_out_in, set_flags, reset, Carry_out_r);
-    registrador_ov: component register_d_bin generic map(0) port map(overflow_in, set_flags, reset, Overflow_r);
+    registrador_co: component register_d_bin port map(carry_out_in, set_flags, reset, Carry_out_r);
+    registrador_ov: component register_d_bin port map(overflow_in, set_flags, reset, Overflow_r);
     overflow_in <= (not (alu_control(2) xor A(size - 1) xor B(size - 1))) and (A(size - 1) xor alu_operation_out(size - 1));
-    registrador_neg: component register_d_bin generic map(0) port map(negative_in, set_flags, reset, Negative_r);
+    registrador_neg: component register_d_bin port map(negative_in, set_flags, reset, Negative_r);
     negative_in <= alu_out(word_size - 1);
 
 end architecture operations;
