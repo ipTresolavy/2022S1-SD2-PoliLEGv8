@@ -11,16 +11,16 @@ use IEEE.math_real.all;
 
 entity register_file is
     generic(
-        amount_of_regs : natural := 32; -- including XZR
+        amount_of_regs : natural := 10; -- including XZR
         register_width : natural := 64; -- amount of bits in each register
         reg_reset_value: natural := 0
     );
     port(
         clock                   : in  bit;
         reset                   : in  bit;
-        read_reg_a              : in  bit_vector(integer(log2(real(amount_of_regs))))-1 downto 0);
-        read_reg_b              : in  bit_vector(integer(log2(real(amount_of_regs))))-1 downto 0);
-        write_reg               : in  bit_vector(integer(log2(real(amount_of_regs))))-1 downto 0);
+        read_reg_a              : in  bit_vector(natural(ceil(log2(real(amount_of_regs)))) -1 downto 0);
+        read_reg_b              : in  bit_vector(natural(ceil(log2(real(amount_of_regs)))) -1 downto 0);
+        write_reg               : in  bit_vector(natural(ceil(log2(real(amount_of_regs)))) -1 downto 0);
         write_data              : in  bit_vector(register_width-1 downto 0);
         write_enable            : in  bit;
 
