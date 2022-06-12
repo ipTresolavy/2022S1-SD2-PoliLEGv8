@@ -39,15 +39,12 @@ entity DataFlow is
         -- From Control Unit 
             -- MOV's signals
         mov_enable: in bit;
-        z_k: in bit;
             -- ALU's signals
         alu_control: in bit_vector(2 downto 0);
         set_flags: in bit;
         shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
         alu_b_src: in bit_vector(1 downto 0);
         	-- mul_div_unit's signals
-        div : in bit;   -- div = 1 if division
-        mul_div_unsgn : in bit; -- unsgn = 1 if unsigned operation
         mul_div_src: in bit;
         mul_div_busy : out bit;
         mul_div_enable: in bit;
@@ -74,37 +71,37 @@ architecture structural of DataFlow is
     component ALU is
     	generic(
 		word_size: natural := 64
-	);
-	port (
-		clock: in bit;
-		reset: in bit;
-		A: in bit_vector(word_size - 1 downto 0); -- ALU A
-		B: in bit_vector(word_size - 1 downto 0); -- ALU B
-		alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
-		set_flags: in bit;
-		shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
-		Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
-		Zero: out bit; -- Vale 1, caso Y = 0
-		-- Registradores de flags
-		Zero_r: out bit;
-		Overflow_r: out bit;
-		Carry_out_r: out bit;
-		Negative_r: out bit
-	);
+	    );
+	    port (
+            clock: in bit;
+            reset: in bit;
+            A: in bit_vector(word_size - 1 downto 0); -- ALU A
+            B: in bit_vector(word_size - 1 downto 0); -- ALU B
+            alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
+            set_flags: in bit;
+            shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+            Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
+            Zero: out bit; -- Vale 1, caso Y = 0
+            -- Registradores de flags
+            Zero_r: out bit;
+            Overflow_r: out bit;
+            Carry_out_r: out bit;
+            Negative_r: out bit
+	    );
     end component ALU;
     
     component mul_div_unit is
     	generic (
-		word_s : natural
-	);
-	port (
-		operand_A, operand_B : in bit_vector(word_s-1 downto 0);
-		enable, reset, clk : bit;
-		div : in bit;   -- div = 1 if division
-		unsgn : in bit; -- unsgn = 1 if unsigned operation
-		busy : out bit;
-		result_high, result_low : out bit_vector(word_s-1 downto 0)
-	);
+		    word_s : natural
+	    );
+        port (
+            operand_A, operand_B : in bit_vector(word_s-1 downto 0);
+            enable, reset, clk : bit;
+            div : in bit;   -- div = 1 if division
+            unsgn : in bit; -- unsgn = 1 if unsigned operation
+            busy : out bit;
+            result_high, result_low : out bit_vector(word_s-1 downto 0)
+        );
 	end component;
 
     component register_d is
@@ -216,9 +213,12 @@ architecture structural of DataFlow is
     signal mul_div_low: bit_vector(word_size - 1 downto 0);
     signal mul_div_high: bit_vector(word_size - 1 downto 0);
     signal mul_div_out: bit_vector(word_size - 1 downto 0);
+    signal mul_div_unsgn: bit;
+    signal div: bit;
 
     -- MOV
     signal mov_immediate: bit_vector(word_size - 1 downto 0);
+    signal z_k: bit;
 
     -- Alu pc
     signal alu_pc_b: bit_vector(word_size - 1 downto 0);
@@ -265,6 +265,8 @@ begin
 	--mul_div_unit
 	mul_div: component mul_div_unit generic map(word_size) port map(read_data_a, read_data_b, mul_div_enable, clock, reset, div, mul_div_unsgn, mul_div_busy, mul_div_high, mul_div_low);
 	mul_div_mux: component mux2x1 generic map(word_size) port map(mul_div_low, mul_div_high, mul_div_src, mul_div_out);
+    div <= not instruction(24);
+    mul_div_unsgn <= instruction(10) when div = '1' else instruction(23);
 
     -- ALU_pc
     ULA_pc: component ALU_pc generic map(word_size) port map(pc_out, alu_pc_b, alu_pc_out);
@@ -284,6 +286,7 @@ begin
 
     -- MOV
     MOVZ_K: component MOV generic map(word_size) port map(write_register_data_mux_out, write_register_data, mov_immediate, instruction(22 downto 21), mov_enable, z_k);
+    z_k <= instruction(29);
     mov_immediate <= bit_vector(resize(signed(instruction(20 downto 5)),word_size/4));
 
     -- Register File
@@ -299,7 +302,7 @@ begin
     end generate stxr_try_generate;
     stxr_try_intermediary <= '0' & stxr_try_vector(word_size - 1);
     stxr_try <= bit_vector(resize(unsigned(stxr_try_intermediary), word_size));
-    stxr_try_out <= stxr_try;
+    stxr_try_out <= stxr_try_intermediary(0);
 
     -- Data Memory
     data_memory_address <= alu_out;
