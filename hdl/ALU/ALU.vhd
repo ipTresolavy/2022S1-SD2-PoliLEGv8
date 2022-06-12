@@ -1,10 +1,14 @@
 
 -------------------------------------------------------
---! @file instruction_memory.vhdl
+--! @file ALU.vhd
 --! @brief ALU do polilegv8
 --! @author Joao Pedro Cabral Miranda (miranda.jp@usp.br)
 --! @date 2022-05-26
 -------------------------------------------------------
+
+library ieee;
+use ieee.math_real.all;
+use ieee.numeric_bit.all;
 
 entity ALU is
     generic(
@@ -31,9 +35,6 @@ end entity ALU;
 architecture operations of ALU is
 
     component register_d_bin is
-        generic (
-            reset_value: natural := 0
-        );
         port (
             D: in bit;
             clock: in bit;
@@ -71,7 +72,9 @@ architecture operations of ALU is
     signal pfa_out: bit_vector(word_size - 1 downto 0);
     signal barrel_shifter_in: bit_vector(word_size - 1 downto 0);
     signal barrel_shifter_out: bit_vector(word_size - 1 downto 0);
+    signal barrel_shifter_out_inv: bit_vector(word_size - 1 downto 0);
     signal alu_operation_out: bit_vector(word_size - 1 downto 0);
+    signal alu_operation_out_inv: bit_vector(word_size - 1 downto 0);
     signal alu_out: bit_vector(word_size - 1 downto 0);
 
     -- flags signals
@@ -87,8 +90,8 @@ begin
     xor_B_generate: for i in word_size - 1 downto 0 generate
         xor_B(i) <= B(i) xor alu_control(2);
     end generate xor_B_generate;
-    
-    somador: component PFA generic map(word_size) port map(A, xor_B, alu_control(3), pfa_out, carry_out_in);
+
+    somador: component PFA generic map(word_size) port map(A, xor_B, alu_control(2), pfa_out, carry_out_in);
 
     -- Mux seletor de operação
     alu_operation_out <= pfa_out when alu_control(2 downto 0) = "000" else
@@ -101,28 +104,36 @@ begin
                          B; -- LSR
           
     -- Barrel Shifter
-    barrel_shifter_in <= alu_operation_out(0 to word_size - 1) when alu_control(2 downto 0) = "111" else
+    alu_inv: for i in word_size - 1 downto 0 generate
+        alu_operation_out_inv(i) <= alu_operation_out(word_size - 1 - i);
+    end generate alu_inv;
+
+    barrel_shifter_in <= alu_operation_out_inv when alu_control(2 downto 0) = "111" else
                          alu_operation_out;
     
     shifter: component barrel_shifter generic map(word_size) port map(barrel_shifter_in, barrel_shifter_out, shift_amount);
 
     -- Saída da ula
-    alu_out <= barrel_shifter_out(0 to word_size - 1) when alu_control(2 downto 0) = "111" else
+    barrel_out_inv: for i in word_size - 1 downto 0 generate
+        barrel_shifter_out_inv(i) <= barrel_shifter_out(word_size - 1 - i);
+    end generate barrel_out_inv;
+    
+    alu_out <= barrel_shifter_out_inv when alu_control(2 downto 0) = "111" else
                barrel_shifter_out;
     Y <= alu_out;
 
     -- Registradores de flags
-    registrador_zero: component register_d_bin port map(zero_in, set_flags, reset, Zero_r);
+    registrador_zero: component register_d_bin port map(zero_in, clock, set_flags, reset, Zero_r);
     zero_vector(0) <= alu_out(0);
-    z_generate: for i in size - 1 downto 1 generate
+    z_generate: for i in word_size - 1 downto 1 generate
         zero_vector(i) <= (zero_vector(i - 1) or alu_out(i));
     end generate z_generate;
-    zero_in <= not zero_vector(size - 1);
+    zero_in <= not zero_vector(word_size - 1);
     Zero <= zero_in;
-    registrador_co: component register_d_bin port map(carry_out_in, set_flags, reset, Carry_out_r);
-    registrador_ov: component register_d_bin port map(overflow_in, set_flags, reset, Overflow_r);
-    overflow_in <= (not (alu_control(2) xor A(size - 1) xor B(size - 1))) and (A(size - 1) xor alu_operation_out(size - 1));
-    registrador_neg: component register_d_bin port map(negative_in, set_flags, reset, Negative_r);
+    registrador_co: component register_d_bin port map(carry_out_in, clock, set_flags, reset, Carry_out_r);
+    registrador_ov: component register_d_bin port map(overflow_in, clock, set_flags, reset, Overflow_r);
+    overflow_in <= (not (alu_control(2) xor A(word_size - 1) xor B(word_size - 1))) and (A(word_size - 1) xor pfa_out(word_size - 1));
+    registrador_neg: component register_d_bin port map(negative_in, clock, set_flags, reset, Negative_r);
     negative_in <= alu_out(word_size - 1);
 
 end architecture operations;

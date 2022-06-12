@@ -1,6 +1,6 @@
 
 -------------------------------------------------------
---! @file instruction_memory.vhdl
+--! @file register_d_bin.vhdl
 --! @brief Flip-flop tipo D com enable e reset assíncrono para binários
 --! @author Joao Pedro Cabral Miranda (miranda.jp@usp.br)
 --! @date 2022-05-26
