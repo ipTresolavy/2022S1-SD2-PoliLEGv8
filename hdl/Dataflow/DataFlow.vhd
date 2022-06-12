@@ -1,4 +1,11 @@
 
+-------------------------------------------------------
+--! @file DataFlow.vhd
+--! @brief ALU do polilegv8
+--! @author Joao Pedro Cabral Miranda (miranda.jp@usp.br)
+--! @date 2022-05-26
+-------------------------------------------------------
+
 library ieee;
 use ieee.math_real.all;
 use ieee.numeric_bit.all;
@@ -28,6 +35,7 @@ entity DataFlow is
         carry_out_r: out bit;
         overflow_r: out bit;
         negative_r: out bit;
+        stxr_try_out: out bit;
         -- From Control Unit 
             -- MOV's signals
         mov_enable: in bit;
@@ -291,6 +299,7 @@ begin
     end generate stxr_try_generate;
     stxr_try_intermediary <= '0' & stxr_try_vector(word_size - 1);
     stxr_try <= bit_vector(resize(unsigned(stxr_try_intermediary), word_size));
+    stxr_try_out <= stxr_try;
 
     -- Data Memory
     data_memory_address <= alu_out;
