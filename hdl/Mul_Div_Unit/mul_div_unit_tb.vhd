@@ -102,6 +102,8 @@ begin
 
             wait until busy = '0';
 
+            wait for 0.01 ns;
+
             assert result_high = tests(i).result_high report "bad result_high!" severity error;
             assert result_low = tests(i).result_low report "bad result_low!" severity error;
 

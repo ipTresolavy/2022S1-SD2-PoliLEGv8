@@ -22,168 +22,118 @@ entity mul_div_unit is
     );
 end entity;
 
-architecture struct of mul_div_unit is
-    constant ZERO : bit_vector(word_s-1 downto 0) := (others => '0');
-    type state_type is (IDLE, EXEC);
-
-    component div_mul_adder is
+architecture full of mul_div_unit is
+   component mul_div_control is
         generic (
             word_s : natural
         );
         port (
-            operand_A, operand_B : in bit_vector(word_s-1 downto 0);
-            c_in   : in bit;
-            c_out  : out bit;
-            result : out bit_vector(word_s-1 downto 0)
-        );
+            enable, reset, clk : in bit;
+            div   : in bit;   -- div = 1 if division
+            sgn   : in bit;   -- sgn = 1 if unsigned operation
+            busy  : out bit;
+            A_msb : in bit;
+            B_msb : in bit; 
+            lo_lsb : in bit;          -- lsb of the low register (for mul)
+            adder_carry_out : in bit; -- carry out of the main adder (for div)
+            adder_A_src      : out bit;
+            sub              : out bit;
+            inv_src          : out bit;
+            write_lo_src     : out bit;
+            sel_lo, sel_hi   : out bit_vector(1 downto 0);
+            write_hi_src     : out bit;
+            clr_hi, clr_lo   : out bit; 
+            arit_shift_right : out bit
+        ); 
     end component;
 
-    component register_d is
-        generic (
-            size: natural := 8;
-            reset_value: natural := 0
-        );
-        port (
-            D: in bit_vector(size - 1 downto 0);
-            clock: in bit;
-            enable: in bit;
-            reset: in bit;
-            Q: out bit_vector(size - 1 downto 0)
-        );
-    end component;
-
-    component unsigned_mul_div_unit is
+    component mul_div_dataflow is
         generic (
             word_s : natural := 64
         );
         port (
-            fixed_operand     : in bit_vector(word_s-1 downto 0); -- dividend/multiplier
-            shifted_operand   : in bit_vector(word_s-1 downto 0); -- divisor/multiplicand
-            start, clk, reset : in bit; 
-            div               : in bit; 
-
-            busy : out bit;
-            result_high : out bit_vector(word_s-1 downto 0);
-            result_low  : out bit_vector(word_s-1 downto 0)
+            A, B : in bit_vector(word_s-1 downto 0);
+            clk  : in bit;
+            adder_A_src : in bit;
+            sub         : in bit;
+            inv_src : in bit;
+            write_lo_src : in bit;
+            sel_lo       : in bit_vector(1 downto 0);
+            clr_lo       : in bit;
+            write_hi_src     : in bit;
+            sel_hi           : in bit_vector(1 downto 0);
+            clr_hi           : in bit;
+            arit_shift_right : in bit;
+            adder_carry_out : out bit;
+            result_high, result_low : out bit_vector(word_s-1 downto 0)
         );
     end component;
 
-    -- data flow signals
-    signal hi_inv_A, hi_inv_result : bit_vector(word_s-1 downto 0);
-    signal lo_inv_A, lo_inv_result : bit_vector(word_s-1 downto 0);
-    signal lo_inv_c_out, hi_inv_c_in : bit;
-    signal hi_reg_out, lo_reg_out : bit_vector(word_s-1 downto 0);
-    signal hi_reg_in, lo_reg_in : bit_vector(word_s-1 downto 0);
-    signal fixed_operand, shifted_operand, 
-           result_high_normal, result_low_normal : bit_vector(word_s-1 downto 0);
-    signal mul_div_enable, mul_div_busy : bit;
-
-    -- control unit signals
-    signal current_state, next_state : state_type;
-    signal mul_div_finished : bit;
+    signal adder_A_src : bit;
+    signal sub         : bit;
+    signal inv_src : bit;
+    signal write_lo_src : bit;
+    signal sel_lo       : bit_vector(1 downto 0);
+    signal clr_lo       : bit;
+    signal write_hi_src     : bit;
+    signal sel_hi           : bit_vector(1 downto 0);
+    signal clr_hi           : bit;
+    signal arit_shift_right : bit;
+    signal adder_carry_out : bit;
+    signal result_high_i, result_low_i : bit_vector(word_s-1 downto 0);
+    signal sgn : bit;
+    signal A_msb, B_msb, lo_lsb : bit;
 begin
-    hi_inv: div_mul_adder
+    CONTROL_UNIT: mul_div_control
     generic map (word_s)
     port map (
-        operand_A => hi_inv_A,
-        operand_B => ZERO, 
-        c_in => hi_inv_c_in,
-        c_out => open,
-        result => hi_inv_result
-    );  
-
-    lo_inv: div_mul_adder
-    generic map (word_s)
-    port map (
-        operand_A => lo_inv_A,
-        operand_B => ZERO, 
-        c_in => '1',
-        c_out => lo_inv_c_out,
-        result => lo_inv_result
-    );  
-
-    hi_reg: register_d     
-    generic map (word_s, 0)
-    port map (
-        D => hi_reg_in,
-        clock => clk,
-        enable => mul_div_finished,
-        reset => reset,
-        Q => hi_reg_out
-    );
-
-    lo_reg: register_d     
-    generic map (word_s, 0)
-    port map (
-        D => lo_reg_in,
-        clock => clk,
-        enable => mul_div_finished,
-        reset => reset,
-        Q => lo_reg_out
-    );
-
-    mul_div: unsigned_mul_div_unit
-    generic map (word_s)
-    port map (
-        fixed_operand => fixed_operand,
-        shifted_operand => shifted_operand,
-        start => enable,
+        enable => enable, 
+        reset => reset, 
         clk => clk,
-        reset => reset,
         div => div,
-        busy => mul_div_busy,
-        result_high => result_high_normal,
-        result_low => result_low_normal
+        sgn => sgn,
+        busy => busy,
+        A_msb => A_msb,
+        B_msb => B_msb,
+        lo_lsb => lo_lsb,
+        adder_carry_out => adder_carry_out,
+        adder_A_src => adder_A_src,
+        sub => sub,
+        inv_src => inv_src,
+        write_lo_src => write_lo_src,
+        sel_lo => sel_lo, 
+        sel_hi => sel_hi,
+        write_hi_src => write_hi_src,
+        clr_hi => clr_hi, 
+        clr_lo => clr_lo,
+        arit_shift_right => arit_shift_right
     );
 
-    -- data flow connections
-    shifted_operand <= lo_inv_result when operand_A(word_s-1) = '1' and unsgn = '0'
-                       else operand_A;
-    fixed_operand <= hi_inv_result when operand_B(word_s-1) = '1' and unsgn = '0'
-                     else operand_B;
-    lo_inv_A <= not operand_A when mul_div_finished = '0' else not result_low_normal;
-    hi_inv_A <= not operand_B when mul_div_finished = '0' else not result_high_normal;
-    hi_inv_c_in <= lo_inv_c_out when mul_div_finished = '1' and div = '0' else '1';
-    lo_reg_in <= lo_inv_result when unsgn = '0' and (operand_A(word_s-1) XOR operand_B(word_s-1)) = '1'
-                 else result_low_normal;
-    hi_reg_in <= hi_inv_result when unsgn = '0' and (operand_A(word_s-1) XOR operand_B(word_s-1)) = '1'
-                 else result_high_normal;
+    DATAFLOW: mul_div_dataflow
+    generic map (word_s)
+    port map (
+        A => operand_A, 
+        B => operand_B, 
+        clk => clk,
+        adder_A_src => adder_A_src,
+        sub => sub,
+        inv_src => inv_src,
+        write_lo_src => write_lo_src,
+        sel_lo => sel_lo,
+        clr_lo => clr_lo,
+        write_hi_src => write_hi_src,
+        sel_hi => sel_hi,
+        clr_hi => clr_hi,
+        arit_shift_right => arit_shift_right,
+        adder_carry_out => adder_carry_out,
+        result_high => result_high_i,
+        result_low => result_low_i
+    );
 
-    result_high <= hi_reg_out;
-    result_low <= lo_reg_out;
-
-    -- control unit 
-    transition: process (clk, reset) is
-    begin
-        if rising_edge(clk) then
-            current_state <= next_state;
-        end if;
-
-        if reset = '1' then
-            current_state <= IDLE;
-        end if;
-    end process;
-
-    fsm: process (current_state, enable, mul_div_busy) is
-    begin
-        case current_state is
-            when IDLE =>
-                mul_div_finished <= '0'; 
-                busy <= '0';
-                if (enable = '1') then
-                    next_state <= EXEC;
-                else
-                    next_state <= IDLE;
-                end if;
-
-            when EXEC =>
-                mul_div_finished <= not mul_div_busy; 
-                busy <= '1';
-                if (mul_div_busy = '0') then
-                    next_state <= IDLE;
-                else
-                    next_state <= EXEC;
-                end if;
-        end case;
-    end process;
+    sgn <= not unsgn;
+    A_msb <= operand_A(word_s-1);
+    B_msb <= operand_B(word_s-1);
+    lo_lsb <= result_low_i(0);
+    result_high <= result_high_i;
+    result_low <= result_low_i;
 end architecture;
