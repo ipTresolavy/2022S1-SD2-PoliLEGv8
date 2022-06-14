@@ -35,7 +35,7 @@ entity mul_div_control is
 end entity;
 
 architecture fsm of mul_div_control is
-    type state_type is (IDLE, EXEC_MUL, EXEC_DIV);
+    type state_type is (IDLE, INIT, EXEC_MUL, EXEC_DIV);
 
     component counter is
         generic (
@@ -83,23 +83,25 @@ begin
 
         case state is
             when IDLE => 
-                sel_lo <= enable & enable;
-                clr_hi <= enable;
-                write_lo_src <= A_msb and sgn and div; -- A negative and signed div
-                inv_src <= '0';
                 cnt_reset <= cnt_timeout;                
                 busy <= '0';
 
                 if (enable = '1') then
-                    if (div = '1') then
-                        next_state <= EXEC_DIV;
-                    else
-                        next_state <= EXEC_MUL;
-                    end if;
-                    cnt_enable <= '1';
+                    next_state <= INIT;
+                end if;
+
+            when INIT =>
+                sel_lo <= "11";
+                clr_hi <= '1';
+                write_lo_src <= A_msb and sgn and div; -- A negative and signed div
+                inv_src <= '0';
+                busy <= '0';
+                cnt_enable <= '1';
+
+                if (div = '1') then
+                    next_state <= EXEC_DIV;
                 else
-                    next_state <= IDLE;
-                    cnt_enable <= '0';
+                    next_state <= EXEC_MUL;
                 end if;
 
             when EXEC_MUL => 

@@ -83,6 +83,7 @@ architecture full of mul_div_unit is
     signal result_high_i, result_low_i : bit_vector(word_s-1 downto 0);
     signal sgn : bit;
     signal A_msb, B_msb, lo_lsb : bit;
+    signal df_clk : bit;
 begin
     CONTROL_UNIT: mul_div_control
     generic map (word_s)
@@ -114,7 +115,7 @@ begin
     port map (
         A => operand_A, 
         B => operand_B, 
-        clk => clk,
+        clk => df_clk,
         adder_A_src => adder_A_src,
         sub => sub,
         inv_src => inv_src,
@@ -130,6 +131,7 @@ begin
         result_low => result_low_i
     );
 
+    df_clk <= not clk;
     sgn <= not unsgn;
     A_msb <= operand_A(word_s-1);
     B_msb <= operand_B(word_s-1);
