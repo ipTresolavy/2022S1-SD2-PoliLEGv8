@@ -190,11 +190,11 @@ architecture structural of DataFlow is
 
     component sign_extension_unit is
         generic(
-            double_word_width : natural := 64
+            doubleword_width : natural := 64
         );
         port(
             legv8_instruction    : in bit_vector(31 downto 0);
-            signExt_imm          : out bit_vector(double_word_width-1 downto 0)
+            signExt_imm          : out bit_vector(doubleword_width-1 downto 0)
         );
     end component sign_extension_unit;
 
@@ -217,7 +217,7 @@ architecture structural of DataFlow is
     signal div: bit;
 
     -- MOV
-    signal mov_immediate: bit_vector(word_size - 1 downto 0);
+    signal mov_immediate: bit_vector(word_size/4 - 1 downto 0);
     signal z_k: bit;
 
     -- Alu pc
@@ -263,7 +263,7 @@ begin
     alu_b_mux: component mux4x1 generic map(word_size) port map(read_data_b, alu_pc_out, pc_out, immediate_extended, alu_b_src, alu_b);
 
 	--mul_div_unit
-	mul_div: component mul_div_unit generic map(word_size) port map(read_data_a, read_data_b, mul_div_enable, clock, reset, div, mul_div_unsgn, mul_div_busy, mul_div_high, mul_div_low);
+	mul_div: component mul_div_unit generic map(word_size) port map(read_data_a, read_data_b, mul_div_enable, reset, clock, div, mul_div_unsgn, mul_div_busy, mul_div_high, mul_div_low);
 	mul_div_mux: component mux2x1 generic map(word_size) port map(mul_div_low, mul_div_high, mul_div_src, mul_div_out);
     div <= not instruction(24);
     mul_div_unsgn <= instruction(10) when div = '1' else instruction(23);
@@ -305,7 +305,7 @@ begin
     stxr_try_out <= stxr_try_intermediary(0);
 
     -- Data Memory
-    data_memory_address <= alu_out;
+    data_memory_address <= alu_out(integer(log2(real(data_memory_size))) - 1 downto 0);
     write_data_memory_mux: component mux4x1 generic map(word_size) port map(write_data_memory_b, write_data_memory_h, write_data_memory_w, read_data_b, data_memory_src, write_data);
     write_data_memory_b <= bit_vector(resize(unsigned(read_data_b(word_size/8 - 1 downto 0)), word_size));
     write_data_memory_h <= bit_vector(resize(unsigned(read_data_b(word_size/4 - 1 downto 0)), word_size));

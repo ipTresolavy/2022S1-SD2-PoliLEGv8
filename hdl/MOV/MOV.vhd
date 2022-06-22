@@ -55,7 +55,7 @@ begin
     -- gera o hardware responsável pelo MOVZ e MOVk
     mux_unit_generate: for i in 3 downto 0 generate
         shift_unit: component mux4x1 generic map(word_size/4) 
-            port map(zero, imediato, A((i + 1)*word_size/4 - 1 downto 0), imediato, mux_selector(i), mov_result((i + 1)*word_size/4 - 1 downto 0));
+            port map(zero, imediato, A((i + 1)*word_size/4 - 1 downto i*word_size/4), imediato, mux_selector(i), mov_result((i + 1)*word_size/4 - 1 downto i*word_size/4));
     end generate mux_unit_generate;
 
 end architecture movz_k;
