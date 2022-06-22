@@ -1,4 +1,3 @@
-
 -------------------------------------------------------
 --! @file ALU.vhd
 --! @brief ALU do polilegv8
@@ -80,6 +79,7 @@ architecture operations of ALU is
     -- flags signals
     signal zero_vector: bit_vector(word_size - 1 downto 0);
     signal zero_in: bit;
+    signal carry_out_pfa: bit;
     signal carry_out_in: bit;
     signal overflow_in: bit;
     signal negative_in: bit;
@@ -91,7 +91,7 @@ begin
         xor_B(i) <= B(i) xor alu_control(2);
     end generate xor_B_generate;
 
-    somador: component PFA generic map(word_size) port map(A, xor_B, alu_control(2), pfa_out, carry_out_in);
+    somador: component PFA generic map(word_size) port map(A, xor_B, alu_control(2), pfa_out, carry_out_pfa);
 
     -- Mux seletor de operação
     alu_operation_out <= pfa_out when alu_control(2 downto 0) = "000" else
@@ -131,8 +131,9 @@ begin
     zero_in <= not zero_vector(word_size - 1);
     Zero <= zero_in;
     registrador_co: component register_d_bin port map(carry_out_in, clock, set_flags, reset, Carry_out_r);
+    carry_out_in <= carry_out_pfa when alu_control(1 downto 0) = "00" else '0';
     registrador_ov: component register_d_bin port map(overflow_in, clock, set_flags, reset, Overflow_r);
-    overflow_in <= (not (alu_control(2) xor A(word_size - 1) xor B(word_size - 1))) and (A(word_size - 1) xor pfa_out(word_size - 1));
+    overflow_in <= (not (alu_control(2) xor A(word_size - 1) xor B(word_size - 1))) and (A(word_size - 1) xor pfa_out(word_size - 1)) when alu_control(1 downto 0) = "00" else '0';
     registrador_neg: component register_d_bin port map(negative_in, clock, set_flags, reset, Negative_r);
     negative_in <= alu_out(word_size - 1);
 
