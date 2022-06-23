@@ -145,33 +145,50 @@ begin
     -- Clock generation
     clk <= not clk after clk_period/2 when ticking = '1';
 
-    stimuli : process
-        procedure reset_test_signals() is
-                mov_enable <= '0';
-                alu_control <= "000";
-                set_flags <= '0';
-                shift_amount <= (others => '0');
-                alu_b_src <= "00";
-                mul_div_src <= '0';
-                mul_div_enable <= '0';
-                alu_pc_b_src <= '0';
-                pc_src <= '0';
-                pc_enable <= '0';
-                monitor_enable <= '0';
-                read_register_a_src <= '0';
-                read_register_b_src <= '0';
-                write_register_src <= '0';
-                write_register_data_src <= "00";
-                write_register_enable <= '0';
-                data_memory_src <= "00";
+    stimuli : process is
+        -- procedure reset_test_signals() is
+        procedure reset_test_signals is
+        begin
+            mov_enable <= '0';
+            alu_control <= "000";
+            set_flags <= '0';
+            shift_amount <= (others => '0');
+            alu_b_src <= "00";
+            mul_div_src <= '0';
+            mul_div_enable <= '0';
+            alu_pc_b_src <= '0';
+            pc_src <= '0';
+            pc_enable <= '0';
+            monitor_enable <= '0';
+            read_register_a_src <= '0';
+            read_register_b_src <= '0';
+            write_register_src <= '0';
+            write_register_data_src <= "00";
+            write_register_enable <= '0';
+            data_memory_src <= "00";
         end procedure;
+
+        -- assert reg_file[reg_num] = value
+        procedure assert_register (
+            constant reg_num : in natural range 0 to 31;
+            constant value   : in integer; 
+            constant message : String
+            ) is
+        begin
+            reset_test_signals;
+            read_register_b_src <= '0'; -- instruction[20:16]
+            instruction(20 downto 16) <= bit_vector(to_unsigned(reg_num, 5));
+            data_memory_src <= "11";    -- read register 2
+            wait for clk_period;
+
+            assert to_integer(signed(write_data)) = value
+                report message severity error;
+        end procedure;
+            
     begin
         -- INITIALIZATION
-        -- set_flags <= '0';
-        -- pc_enable <= '0';
-        -- write_register_enable <= '0';
-        -- mul_div_enable <= '0';
-        reset_test_signals();
+        -- reset_test_signals_();
+        reset_test_signals;
         reset <= '1';
         ticking <= '1'; -- activate clock
         wait for clk_period*2;
@@ -180,8 +197,6 @@ begin
         -- POPULATE REGISTERS
         data_memory_src <= "11";         -- get doubleword
         write_register_data_src <= "01"; -- read from memory
-        -- write_register_src <= '0';       write_register comes from instruction
-        -- mov_enable <= '0';               dont change data from memory with MOV
         write_register_enable <= '1';
 
         instruction(4 downto 0) <= "00001";
@@ -212,15 +227,15 @@ begin
         read_data <= "0000000000000000000000000000000000000000000000000000000000001100"; -- +12
         wait for clk_period;
 
-        -- write_register_enable <= '0';
-        reset_test_signals();
+        -- reset_test_signals();
+        reset_test_signals;
 
         report "SOT" severity note;
 
         -- TEST TYPE R ALU WITHOUT FLAGS
         report "test 1" severity note;
         --                   op        rm     shamt     rn      rt
-        instruction <= "11001011000"&"00111"&"000000"&"00001"&"01000"; -- ADD
+        instruction <= "11001011000"&"00111"&"000000"&"00001"&"00000"; -- ADD
         read_register_a_src <= '0';       -- instruction[9:5]
         read_register_b_src <= '0';       -- instruction[20:16]
         alu_b_src <= "00";                -- read_data 2
@@ -231,24 +246,18 @@ begin
         write_register_enable <= '1';
         wait for clk_period;
 
-        write_register_enable <= '0';
-        instruction(9 downto 5) <= "01000";  -- rt
-        instruction(20 downto 16) <= "00000"; -- XZR
-        wait for clk_period;
-
-        assert to_integer(signed(data_memory_address)) = 1
-            report "bad alu_out" severity error;
+        assert_register(0, 1, "bad alu_out");
 
         -- TEST TYPE R WITH FLAGS
         -- ???
 
-        -- TEST TYPE R MUL/DIV
-        report "test 2" severity note;
+        -- TEST TYPE R MUL/DIV LOW
+        report "test 3" severity note;
         --                   op        rm     shamt     rn      rt
-        instruction <= "10011010110"&"00010"&"000010"&"00111"&"01000"; --SDIV
-        read_register_a_src <= '0';       -- instruction[9:5]
-        read_register_b_src <= '0';       -- instruction[20:16]
-        mul_div_src <= '0'; -- get div
+        instruction <= "10011010110"&"00010"&"000010"&"00111"&"00000"; --SDIV
+        read_register_a_src <= '0';     -- instruction[9:5]
+        read_register_b_src <= '0';     -- instruction[20:16]
+        mul_div_src <= '0';             -- get low register
         mul_div_enable <= '1';
         wait until mul_div_busy = '1';
         wait until mul_div_busy = '0';
@@ -259,13 +268,7 @@ begin
         write_register_enable <= '1';
         wait until rising_edge(clk);
 
-        write_register_enable <= '0';
-        instruction(9 downto 5) <= "01000";   -- rt
-        instruction(20 downto 16) <= "00000"; -- XZR
-        wait for clk_period;
-
-        assert to_integer(signed(data_memory_address)) = -6
-            report "bad alu_out" severity error;
+        assert_register(0, -6, "bad alu_out");
 
         ticking <= '0';
         wait;
