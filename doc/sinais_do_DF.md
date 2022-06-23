@@ -2,6 +2,8 @@
     - instruction e read_data serão inventados
 
 # Fetch
+   pc_enable
+
 # Decode
 # Execute
 
@@ -281,7 +283,7 @@ Register_File(instruction[4:0]) = UnsignExt( instruction[20:5] ) << (instruction
 
 Register_File(instruction[4:0]) = Register_File(instruction[9:5]) << Register_File(instruction[20:16])
 
-## LSL (R-format)
+## LSR (R-format)
     * alu_control <-- 111
     * shift_amount <-- instruction[15:10]
     * write_register_enable
