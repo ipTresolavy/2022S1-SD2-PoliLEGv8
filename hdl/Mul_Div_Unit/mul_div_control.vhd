@@ -51,6 +51,7 @@ architecture fsm of mul_div_control is
 
     -- counter signals
     signal cnt_reset, cnt_enable, cnt_timeout : bit;
+    signal cnt_reset_internal : bit;
 
     -- fsm signals
     signal state, next_state : state_type;
@@ -63,6 +64,8 @@ begin
         enable  => cnt_enable,
         timeout => cnt_timeout 
     );
+
+    cnt_reset <= reset OR cnt_reset_internal;
 
     TRANSITION: process (clk, reset) is
     begin
@@ -83,7 +86,7 @@ begin
 
         case state is
             when IDLE => 
-                cnt_reset <= cnt_timeout;                
+                cnt_reset_internal <= cnt_timeout;                
                 busy <= '0';
 
                 if (enable = '1') then
