@@ -58,7 +58,7 @@ entity DataFlow is
             -- Instruction Memory's signals
         read_register_a_src: in bit;
         read_register_b_src: in bit;
-        write_register_src: in bit;
+        write_register_src: in bit_vector(1 downto 0);
         write_register_data_src: in bit_vector(1 downto 0);
         write_register_enable: in bit;
             -- Data Memory's signals
@@ -293,7 +293,7 @@ begin
     Banco_de_registradores: component register_file generic map(32, word_size, 0) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
     read_register_a_mux: component mux2x1 generic map(5) port map(instruction(9 downto 5), monitor_out, read_register_a_src, read_register_a);
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
-    write_register_mux: component mux2x1 generic map(5) port map(instruction(4 downto 0), "11110", write_register_src, write_register);
+    write_register_mux: component mux4x1 generic map(5) port map(instruction(4 downto 0), "11110", instruction(4 downto 0), instruction(20 downto 16), write_register_src, write_register);
     write_register_data_mux: component mux4x1 generic map(word_size) port map(alu_out, read_data_mux_out, mul_div_out, stxr_try, write_register_data_src, write_register_data_mux_out);
     stxr_try_xor <= read_data_mux_out xor alu_out;
     stxr_try_vector(0) <= stxr_try_xor(0);
