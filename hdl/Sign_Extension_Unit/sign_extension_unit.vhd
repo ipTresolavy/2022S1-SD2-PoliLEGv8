@@ -10,11 +10,11 @@ use IEEE.numeric_bit.all;
 
 entity sign_extension_unit is
     generic(
-        double_word_width : natural := 64
+        doubleword_width : natural := 64
     );
     port(
         legv8_instruction    : in bit_vector(31 downto 0);
-        signExt_imm          : out bit_vector(double_word_width-1 downto 0)
+        signExt_imm          : out bit_vector(doubleword_width-1 downto 0)
     );
 end entity sign_extension_unit;
 
@@ -52,10 +52,10 @@ architecture signExt of sign_extension_unit is
         B_type <= true when (legv8_instruction(30 downto 26) = "00101") else
                  false;
 
-        signExt_imm <= bit_vector(resize(signed(BR_address), double_word_width))     when B_type else
-                       bit_vector(resize(signed(MOV_immediate), double_word_width))  when IM_type else
-                       bit_vector(resize(signed(COND_BR_address), double_word_width))when CB_type else
-                       bit_vector(resize(signed(DT_address), double_word_width))     when D_type else
-                       bit_vector(resize(signed(ALU_immediate), double_word_width));
+        signExt_imm <= bit_vector(resize(signed(BR_address), doubleword_width))     when B_type else
+                       bit_vector(resize(signed(MOV_immediate), doubleword_width))  when IM_type else
+                       bit_vector(resize(signed(COND_BR_address), doubleword_width))when CB_type else
+                       bit_vector(resize(signed(DT_address), doubleword_width))     when D_type else
+                       bit_vector(resize(signed(ALU_immediate), doubleword_width));
 
 end architecture signExt;

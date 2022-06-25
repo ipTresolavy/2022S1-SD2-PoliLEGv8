@@ -1,6 +1,6 @@
 
 -------------------------------------------------------
---! @file instruction_memory.vhdl
+--! @file PFA_tb.vhd
 --! @brief testbench do PFA
 --! @author Joao Pedro Cabral Miranda (miranda.jp@usp.br)
 --! @date 2022-05-26
