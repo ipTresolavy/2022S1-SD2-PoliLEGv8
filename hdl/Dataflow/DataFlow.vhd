@@ -50,8 +50,6 @@ entity DataFlow is
         mul_div_src: in bit;
         mul_div_busy : out bit;
         mul_div_enable: in bit;
-            --ALU_pc's signals
-        alu_pc_b_src: in bit;
             -- PC's signals
         pc_src: in bit;
         pc_branch_src: in bit;
