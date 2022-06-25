@@ -394,6 +394,55 @@ begin
         assert to_integer(unsigned(instruction_read_address)) = INSTRUCTION_MEMORY_SIZE/2
             report "bad PC" severity error;
         wait for clk_period/2;
+        reset_test_signals;
+
+        -- TEST TYPE R LDXR
+        report "test 8" severity note;
+        store_register_integer(2, 0); 
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11001000010"&"11111"&"000000"&"00010"&"00001"; --LDXR X1, X2
+        read_register_a_src <= '0';     -- instruction[9:5]
+        read_register_b_src <= '0';     -- instruction[20:16] (always XZR)
+        alu_b_src <= "00";              -- read register 2
+        alu_control <= "000";           -- ADD
+        read_data <= bit_vector(to_unsigned(42, word_size));
+        write_register_enable <= '1';
+        monitor_enable <= '1';
+        wait until rising_edge(clk);
+
+        -- TEST TYPE R STXR
+        report "test 9" severity note;
+        store_register_integer(3, 0); 
+        --                   op        rs                   rn      rt
+        instruction <= "11001000000"&"00011"&"0"&"11111"&"00010"&"00001"; --STXR X3, X1, X2
+        read_register_a_src <= '0'; -- instruction[9:5] 
+        alu_b_src <= "11";          -- TODO: tem que ser zero kkk
+        alu_control <= "000";
+        wait until rising_edge(clk);
+        read_data <= bit_vector(to_unsigned(42, word_size));
+
+        assert (stxr_try_out = '0')
+            report "bad stxr_try_out" severity error;
+
+        write_register_enable <= '1';
+        write_register_data_src <= "11";
+        wait until rising_edge(clk);
+        write_register_enable <= '0';
+
+        read_register_a_src <= '0'; -- instruction[9:5] 
+        alu_b_src <= "11";          -- TODO: tem que ser zero kkk
+        alu_control <= "000";
+        assert (to_integer(unsigned(write_data)) = 3) 
+            report "bad write data" severity error;
+
+        reset_test_signals;
+
+        assert_register_integer(1, 42, "load failed");
+        
+        -- TEST TYPE R STXR
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11001000010"&"11111"&"000000"&"00001"&"00000"; --BR X1
+
 
         -- TEST OF I-FORMAT INSTRUCTIONS
         report "test 8" severity note;

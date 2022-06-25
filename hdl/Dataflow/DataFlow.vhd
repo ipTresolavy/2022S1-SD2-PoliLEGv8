@@ -302,7 +302,7 @@ begin
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
     write_register_mux: component mux4x1 generic map(5) port map(instruction(4 downto 0), "11110", instruction(4 downto 0), instruction(20 downto 16), write_register_src, write_register);
     write_register_data_mux: component mux4x1 generic map(word_size) port map(alu_out, read_data_mux_out, mul_div_out, stxr_try, write_register_data_src, write_register_data_mux_out);
-    stxr_try_xor <= read_data_mux_out xor alu_out;
+    stxr_try_xor <= read_data_mux_out xor read_data_a;
     stxr_try_vector(0) <= stxr_try_xor(0);
     stxr_try_generate: for i in word_size - 1 downto 1 generate
         stxr_try_vector(i) <= (stxr_try_vector(i - 1) or stxr_try_xor(i));
