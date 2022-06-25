@@ -235,12 +235,17 @@ Register_File(instruction[4:0]) = SignExt( Data_memory(Register_file(instruction
 
 ## STXR (D-format)
 This instruction has more than one execution state
+
     * initial_state:
         * alu_control <-- 011
         * read_register_a_src
+        * read_register_b_src
+        * WAIT_FOR_DATA_MEMORY
         * write_register_data_src <-- 11
-        // TODO: write_register_src <-- instruction[20:16]
+        * write_reg_enable
     * final_state:
+        * alu_control <-- 011
+        * read_register_b
         *
 
 if (Data_memory(instruction[4:0]) == Register_File(Monitor)) --> Data_memory()
