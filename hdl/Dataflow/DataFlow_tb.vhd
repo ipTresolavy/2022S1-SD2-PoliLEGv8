@@ -269,7 +269,7 @@ begin
         write_register_src <= "00";        -- instruction[4:0]
         write_register_data_src <= "00";  -- alu_out
         write_register_enable <= '1';
-        wait for clk_period;
+        wait until rising_edge(clk);
 
         assert_register_integer(0, 1, "bad alu_out");
         reset_test_signals;
@@ -287,10 +287,12 @@ begin
         write_register_data_src <= "00";  -- alu_out
         write_register_enable <= '1';
         set_flags <= '1';
-        wait for clk_period*2;
+        wait until rising_edge(clk);
 
+        wait for clk_period/2;
         assert (carry_out_r = '1') and (overflow_r = '1') and (zero_r = '0') and (negative_r = '0')
             report "bad flags" severity error;
+        wait for clk_period/2;
         reset_test_signals;
 
         -- TEST TYPE R WITH FLAGS 2
@@ -306,10 +308,12 @@ begin
         write_register_data_src <= "00";  -- alu_out
         write_register_enable <= '1';
         set_flags <= '1';
-        wait for clk_period*2;
+        wait until rising_edge(clk);
 
+        wait for clk_period/2;
         assert (carry_out_r = '1') and (overflow_r = '0') and (zero_r = '1') and (negative_r = '0')
             report "bad flags" severity error;
+        wait for clk_period/2;
         reset_test_signals;
 
         -- TEST TYPE R WITH FLAGS 3
@@ -325,10 +329,12 @@ begin
         write_register_data_src <= "00";  -- alu_out
         write_register_enable <= '1';
         set_flags <= '1';
-        wait for clk_period*2;
+        wait until rising_edge(clk);
 
+        wait for clk_period/2;
         assert (carry_out_r = '1') and (overflow_r = '0') and (zero_r = '0') and (negative_r = '1')
             report "bad flags" severity error;
+        wait for clk_period/2;
         reset_test_signals;
 
         -- TEST TYPE R MUL/DIV LOW
@@ -390,7 +396,7 @@ begin
         wait for clk_period/2;
 
         -- TEST OF I-FORMAT INSTRUCTIONS
-        report "test 4" severity note;
+        report "test 8" severity note;
         reset_test_signals;
 
         --                   op     ALU_immediate    rn      rd
@@ -447,7 +453,7 @@ begin
             severity error;
 
         -- TEST OF B-FORMAT INSTRUCTIONS
-        report "test 5" severity note;
+        report "test 9" severity note;
         reset_test_signals;
 
         --                op     BR_address
@@ -485,7 +491,7 @@ begin
         assert_register_bit_vector(30, x"000000000000007F", "Error on link register value during branch-and-link");
 
         -- TEST OF CB-FORMAT INSTRUCTIONS
-        report "test 6" severity note;
+        report "test 10" severity note;
         reset_test_signals;
 
         --                  op   COND_BR_address   rt
@@ -515,7 +521,7 @@ begin
             severity error;
 
         -- TEST OF IW/IM-FORMAT INSTRUCTIONS
-        report "test 7" severity note;
+        report "test 11" severity note;
         reset_test_signals;
 
         --                  op     lsl MOV_immediate rd
