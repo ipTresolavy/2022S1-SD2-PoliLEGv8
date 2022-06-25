@@ -232,7 +232,7 @@ begin
             write_register_enable <= '1';
 
             instruction(4 downto 0) <= bit_vector(to_unsigned(reg_num, 5));
-            read_data <= value; 
+            read_data <= value;
             wait until rising_edge(clk);
         end procedure;
     begin
@@ -277,7 +277,7 @@ begin
         -- TEST TYPE R WITH FLAGS 1
         report "test 2" severity note;
         --                   op        rm     shamt     rn      rt
-        instruction <= "11101011000"&"00110"&"000000"&"00011"&"00000"; -- SUBS 
+        instruction <= "11101011000"&"00110"&"000000"&"00011"&"00000"; -- SUBS
         read_register_a_src <= '0';       -- instruction[9:5]
         read_register_b_src <= '0';       -- instruction[20:16]
         alu_b_src <= "00";                -- read_data 2
@@ -302,7 +302,7 @@ begin
         read_register_a_src <= '0';       -- instruction[9:5]
         read_register_b_src <= '0';       -- instruction[20:16]
         alu_b_src <= "00";                -- read_data 2
-        alu_control <= "000";             -- add 
+        alu_control <= "000";             -- add
         shift_amount <= "000000";
         write_register_src <= "00";        -- instruction[4:0]
         write_register_data_src <= "00";  -- alu_out
@@ -323,7 +323,7 @@ begin
         read_register_a_src <= '0';       -- instruction[9:5]
         read_register_b_src <= '0';       -- instruction[20:16]
         alu_b_src <= "00";                -- read_data 2
-        alu_control <= "000";             -- add 
+        alu_control <= "000";             -- add
         shift_amount <= "000000";
         write_register_src <= "00";        -- instruction[4:0]
         write_register_data_src <= "00";  -- alu_out
@@ -387,7 +387,7 @@ begin
         alu_b_src <= "00";              -- read register 2
         alu_control <= "000";           -- ADD
         pc_src <= '0';                  -- alu_out
-        pc_enable <= '1'; 
+        pc_enable <= '1';
         wait until rising_edge(clk);
 
         wait for clk_period/2;
@@ -499,12 +499,13 @@ begin
         alu_control <= "011";
         alu_pc_b_src <= '1';
         pc_src <= '1';
-        pc_enable <= zero;
+        pc_enable <= '1';
         read_register_b_src <= '1';
         wait until rising_edge(clk);
         wait for clk_period/2;
-        assert instruction_read_address = "1111111" report "Error on PC during compare-and-branch-if-zero instruction"
+        assert instruction_read_address = "1111100" report "Error on PC during compare-and-branch-if-zero instruction"
             severity error;
+        wait for clk_period/2;
 
         reset_test_signals;
 
@@ -513,11 +514,10 @@ begin
         alu_control <= "011";
         alu_pc_b_src <= '1';
         pc_src <= '1';
-        pc_enable <= not zero;
+        pc_enable <= '1';
         read_register_b_src <= '1';
         wait until rising_edge(clk);
-        wait for clk_period/2;
-        assert instruction_read_address = "1111110" report "Error on PC during compare-and-branch-if-not-zero instruction"
+        assert instruction_read_address = "1111000" report "Error on PC during compare-and-branch-if-not-zero instruction"
             severity error;
 
         -- TEST OF IW/IM-FORMAT INSTRUCTIONS
@@ -526,9 +526,9 @@ begin
 
         --                  op     lsl MOV_immediate rd
         instruction <= "110100101"&"11"&x"FFFF"&"01001"; -- MOVZ X9, #(2^16 -1), LSL #48
-        mov_enable <= '0';
+        mov_enable <= '1';
         alu_control <= "011";
-        shift_amount <= instruction(22 downto 21) & "0000";
+        shift_amount <= "11" & "0000";
         read_register_b_src <= '1';
         write_register_enable <= '1';
         wait until rising_edge(clk);
@@ -538,9 +538,9 @@ begin
 
         --                  op     lsl MOV_immediate rd
         instruction <= "111100101"&"00"&x"FFFF"&"01001"; -- MOVK X9, #(2^16 -1), LSL #0
-        mov_enable <= '0';
+        mov_enable <= '1';
         alu_control <= "011";
-        shift_amount <= instruction(22 downto 21) & "0000";
+        shift_amount <= "00" & "0000";
         read_register_b_src <= '1';
         write_register_enable <= '1';
         wait until rising_edge(clk);
