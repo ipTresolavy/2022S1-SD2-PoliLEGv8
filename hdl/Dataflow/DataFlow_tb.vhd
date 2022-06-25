@@ -202,6 +202,39 @@ begin
                 report message severity error;
         end procedure;
 
+        -- reg_file[reg_num] <= value
+        procedure store_register_integer (
+            constant reg_num : in natural range 0 to 30;
+            constant value   : in integer
+        ) is
+        begin
+            reset_test_signals;
+            data_memory_src <= "11";         -- get doubleword
+            write_register_data_src <= "01"; -- read from memory
+            write_register_src <= "00";      -- write at instruction[4:0]
+            write_register_enable <= '1';
+
+            instruction(4 downto 0) <= bit_vector(to_unsigned(reg_num, 5));
+            read_data <= bit_vector(to_signed(value, word_size));
+            wait until rising_edge(clk);
+        end procedure;
+
+        -- reg_file[reg_num] <= value
+        procedure store_register_bit_vector (
+            constant reg_num : in natural range 0 to 30;
+            constant value   : in bit_vector(word_size-1 downto 0)
+        ) is
+        begin
+            reset_test_signals;
+            data_memory_src <= "11";         -- get doubleword
+            write_register_data_src <= "01"; -- read from memory
+            write_register_src <= "00";      -- write at instruction[4:0]
+            write_register_enable <= '1';
+
+            instruction(4 downto 0) <= bit_vector(to_unsigned(reg_num, 5));
+            read_data <= value; 
+            wait until rising_edge(clk);
+        end procedure;
     begin
         -- INITIALIZATION
         reset_test_signals;
@@ -211,37 +244,14 @@ begin
         reset <= '0';
 
         -- POPULATE REGISTERS
-        data_memory_src <= "11";         -- get doubleword
-        write_register_data_src <= "01"; -- read from memory
-        write_register_enable <= '1';
-
-        instruction(4 downto 0) <= "00001";
-        read_data <= "0000000000000000000000000000000000000000000000000000000000001101"; -- +13
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00010";
-        read_data <= "1111111111111111111111111111111111111111111111111111111111111110"; -- -2
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00011";
-        read_data <= "1000000000000000000000000000000000000000000000000000000000000000"; -- -2^63
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00100";
-        read_data <= "1000000000000000000000000000000000000000000000000000000000000001"; -- -2^63 + 1
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00101";
-        read_data <= "1111111111111111111111111111111111111111111111111111111111111111"; -- -1
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00110";
-        read_data <= "0000000000000000000000000000000000000000000000000000000000000001"; -- 1
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00111";
-        read_data <= "0000000000000000000000000000000000000000000000000000000000001100"; -- +12
-        wait until rising_edge(clk);
+        store_register_integer(1, 13);
+        store_register_integer(2, -2);
+        store_register_bit_vector(3, x"8000000000000000"); -- -2^63
+        store_register_bit_vector(4, x"8000000000000001");  -- -2^63 + 1
+        store_register_integer(5, -1);
+        store_register_integer(6, 1);
+        store_register_integer(7, 12);
+        store_register_integer(8, 2);
 
         reset_test_signals;
 
@@ -259,15 +269,70 @@ begin
         write_register_src <= "00";        -- instruction[4:0]
         write_register_data_src <= "00";  -- alu_out
         write_register_enable <= '1';
-        wait until rising_edge(clk);
+        wait for clk_period;
 
         assert_register_integer(0, 1, "bad alu_out");
+        reset_test_signals;
 
-        -- TEST TYPE R WITH FLAGS
-        -- ???
+        -- TEST TYPE R WITH FLAGS 1
+        report "test 2" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11101011000"&"00110"&"000000"&"00011"&"00000"; -- SUBS 
+        read_register_a_src <= '0';       -- instruction[9:5]
+        read_register_b_src <= '0';       -- instruction[20:16]
+        alu_b_src <= "00";                -- read_data 2
+        alu_control <= "100";             -- sub
+        shift_amount <= "000000";
+        write_register_src <= "00";        -- instruction[4:0]
+        write_register_data_src <= "00";  -- alu_out
+        write_register_enable <= '1';
+        set_flags <= '1';
+        wait for clk_period*2;
+
+        assert (carry_out_r = '1') and (overflow_r = '1') and (zero_r = '0') and (negative_r = '0')
+            report "bad flags" severity error;
+        reset_test_signals;
+
+        -- TEST TYPE R WITH FLAGS 2
+        report "test 3" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "10101011000"&"00101"&"000000"&"00110"&"00000"; -- ADDS
+        read_register_a_src <= '0';       -- instruction[9:5]
+        read_register_b_src <= '0';       -- instruction[20:16]
+        alu_b_src <= "00";                -- read_data 2
+        alu_control <= "000";             -- add 
+        shift_amount <= "000000";
+        write_register_src <= "00";        -- instruction[4:0]
+        write_register_data_src <= "00";  -- alu_out
+        write_register_enable <= '1';
+        set_flags <= '1';
+        wait for clk_period*2;
+
+        assert (carry_out_r = '1') and (overflow_r = '0') and (zero_r = '1') and (negative_r = '0')
+            report "bad flags" severity error;
+        reset_test_signals;
+
+        -- TEST TYPE R WITH FLAGS 3
+        report "test 4" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "10101011000"&"00101"&"000000"&"00101"&"00000"; -- ADDS
+        read_register_a_src <= '0';       -- instruction[9:5]
+        read_register_b_src <= '0';       -- instruction[20:16]
+        alu_b_src <= "00";                -- read_data 2
+        alu_control <= "000";             -- add 
+        shift_amount <= "000000";
+        write_register_src <= "00";        -- instruction[4:0]
+        write_register_data_src <= "00";  -- alu_out
+        write_register_enable <= '1';
+        set_flags <= '1';
+        wait for clk_period*2;
+
+        assert (carry_out_r = '1') and (overflow_r = '0') and (zero_r = '0') and (negative_r = '1')
+            report "bad flags" severity error;
+        reset_test_signals;
 
         -- TEST TYPE R MUL/DIV LOW
-        report "test 3" severity note;
+        report "test 5" severity note;
         --                   op        rm     shamt     rn      rt
         instruction <= "10011010110"&"00010"&"000010"&"00111"&"00000"; --SDIV
         read_register_a_src <= '0';     -- instruction[9:5]
@@ -283,7 +348,46 @@ begin
         write_register_enable <= '1';
         wait until rising_edge(clk);
 
-        assert_register_integer(0, -6, "bad alu_out");
+        assert_register_integer(0, -6, "bad div low");
+        reset_test_signals;
+
+        -- TEST TYPE R MUL/DIV HIGH
+        report "test 6" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "10011011110"&"01000"&"000010"&"00101"&"00000"; --UMULH
+        read_register_a_src <= '0';     -- instruction[9:5]
+        read_register_b_src <= '0';     -- instruction[20:16]
+        mul_div_src <= '1';             -- get high register
+        mul_div_enable <= '1';
+        wait until mul_div_busy = '1';
+        wait until mul_div_busy = '0';
+        mul_div_enable <= '0';
+
+        write_register_src <= "00";
+        write_register_data_src <= "10";
+        write_register_enable <= '1';
+        wait until rising_edge(clk);
+
+        assert_register_integer(0, 1, "bad mul high");
+        reset_test_signals;
+
+        -- TEST TYPE R BR
+        report "test 7" severity note;
+        store_register_integer(1, INSTRUCTION_MEMORY_SIZE/2);
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11010110000"&"11111"&"000000"&"00001"&"00000"; --BR X1
+        read_register_a_src <= '0';     -- instruction[9:5]
+        read_register_b_src <= '0';     -- instruction[20:16] (always XZR)
+        alu_b_src <= "00";              -- read register 2
+        alu_control <= "000";           -- ADD
+        pc_src <= '0';                  -- alu_out
+        pc_enable <= '1'; 
+        wait until rising_edge(clk);
+
+        wait for clk_period/2;
+        assert to_integer(unsigned(instruction_read_address)) = INSTRUCTION_MEMORY_SIZE/2
+            report "bad PC" severity error;
+        wait for clk_period/2;
 
         -- TEST OF I-FORMAT INSTRUCTIONS
         report "test 4" severity note;
