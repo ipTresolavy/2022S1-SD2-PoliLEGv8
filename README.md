@@ -1,13 +1,13 @@
 # PoliLEGv8
-O PoliLEGv8 é uma implementação do processador descrito no livro texto da disciplina de SD2. 
+O PoliLEGv8 é uma implementação do processador descrito no livro texto da disciplina de SD2.
 
 O processador é uma variação de um ARMv8 chamada de LEGv8, o Poli vem da nossa implementação dessa especificação. Nossa implementação é didática, sem pipeline.
 
 ## Processador
-- [ ] Memórias
+- [X] Memórias
 - [ ] Fluxo de Dados
-    - [ ] ULA 64b
-    - [ ] Banco de registradores
+    - [X] ULA 64b
+    - [X] Banco de registradores
 - Instruções (monociclo)
     * [ ] B
     * [ ] AND
