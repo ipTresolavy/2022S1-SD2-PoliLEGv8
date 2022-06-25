@@ -36,7 +36,7 @@ entity DataFlow is
         overflow_r: out bit;
         negative_r: out bit;
         stxr_try_out: out bit;
-        -- From Control Unit 
+        -- From Control Unit
             -- MOV's signals
         mov_enable: in bit;
             -- ALU's signals
@@ -58,7 +58,7 @@ entity DataFlow is
             -- Instruction Memory's signals
         read_register_a_src: in bit;
         read_register_b_src: in bit;
-        write_register_src: in bit;
+        write_register_src: in bit_vector(1 downto 0);
         write_register_data_src: in bit_vector(1 downto 0);
         write_register_enable: in bit;
             -- Data Memory's signals
@@ -89,7 +89,7 @@ architecture structural of DataFlow is
             Negative_r: out bit
 	    );
     end component ALU;
-    
+
     component mul_div_unit is
     	generic (
 		    word_s : natural
@@ -171,7 +171,7 @@ architecture structural of DataFlow is
 
     component register_file is
         generic(
-            amount_of_regs : natural := 32; -- including XZR
+            amount_of_regs : natural := 10; -- including XZR
             register_width : natural := 64; -- amount of bits in each register
             reg_reset_value: natural := 0
         );
@@ -208,7 +208,7 @@ architecture structural of DataFlow is
     -- Alu
     signal alu_b: bit_vector(word_size - 1 downto 0);
     signal alu_out: bit_vector(word_size - 1 downto 0);
-    
+
     -- mul_div_unit
     signal mul_div_low: bit_vector(word_size - 1 downto 0);
     signal mul_div_high: bit_vector(word_size - 1 downto 0);
@@ -229,7 +229,7 @@ architecture structural of DataFlow is
     -- PC
     signal pc_in: bit_vector(word_size - 1 downto 0);
     signal pc_out: bit_vector(word_size - 1 downto 0);
-    
+
     -- Monitor & STXR
     signal monitor_out: bit_vector(4 downto 0);
     signal stxr_try_xor: bit_vector(word_size - 1 downto 0);
@@ -255,6 +255,9 @@ architecture structural of DataFlow is
 
 begin
 
+    -- To control unit
+    opcode <= instruction(31 downto 21);
+
     -- Sign_extension_unit
     sign_extender: component sign_extension_unit generic map(word_size) port map(instruction, immediate_extended);
 
@@ -277,7 +280,7 @@ begin
     -- PC
     PC: component register_d generic map(word_size, 0) port map(pc_in, clock, pc_enable, reset, pc_out);
     pc_mux: component mux2x1 generic map(word_size) port map(alu_out, alu_pc_out, pc_src, pc_in);
-    
+
     -- Monitor
     Monitor: component register_d generic map(5) port map(instruction(9 downto 5), clock, monitor_enable, reset, monitor_out);
 
@@ -293,7 +296,7 @@ begin
     Banco_de_registradores: component register_file generic map(32, word_size, 0) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
     read_register_a_mux: component mux2x1 generic map(5) port map(instruction(9 downto 5), monitor_out, read_register_a_src, read_register_a);
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
-    write_register_mux: component mux2x1 generic map(5) port map(instruction(4 downto 0), "11110", write_register_src, write_register);
+    write_register_mux: component mux4x1 generic map(5) port map(instruction(4 downto 0), "11110", instruction(4 downto 0), instruction(20 downto 16), write_register_src, write_register);
     write_register_data_mux: component mux4x1 generic map(word_size) port map(alu_out, read_data_mux_out, mul_div_out, stxr_try, write_register_data_src, write_register_data_mux_out);
     stxr_try_xor <= read_data_mux_out xor alu_out;
     stxr_try_vector(0) <= stxr_try_xor(0);

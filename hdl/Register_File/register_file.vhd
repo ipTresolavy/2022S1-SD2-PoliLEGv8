@@ -45,7 +45,7 @@ architecture register_file_operation of register_file is
         );
     end component register_d;
 
-    type reg_mux is array (amount_of_regs - 2 downto 0) of bit_vector(register_width-1 downto 0); -- excluding XZR
+    type reg_mux is array (amount_of_regs - 1 downto 0) of bit_vector(register_width-1 downto 0); -- excluding XZR
 
     signal reg_mux_out : reg_mux;
     signal reg_write_enable   : bit_vector(amount_of_regs - 2 downto 0); -- decoder of enables
@@ -58,11 +58,11 @@ architecture register_file_operation of register_file is
             reg: register_d generic map (register_width, reg_reset_value) port map(write_data, clock, reg_write_enable(i), reset, reg_mux_out(i));
         end generate regs_wiring;
 
-        reg_a_data <= (others => '0') when (signed(read_reg_a) = to_signed(-1, read_reg_a'length)) else -- XZR
-                      reg_mux_out(to_integer(unsigned(read_reg_a)));
+        reg_mux_out(amount_of_regs-1) <= (others => '0');
 
-        reg_b_data <= (others => '0') when (signed(read_reg_b) = to_signed(-1, read_reg_b'length)) else -- XZR
-                      reg_mux_out(to_integer(unsigned(read_reg_b)));
+        reg_a_data <= reg_mux_out(to_integer(unsigned(read_reg_a)));
+
+        reg_b_data <= reg_mux_out(to_integer(unsigned(read_reg_b)));
 
         with write_enable select
             reg_write_enable <= (others => '0') when '0', -- doesn't enable any register
