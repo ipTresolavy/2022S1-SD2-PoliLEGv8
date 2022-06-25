@@ -6,6 +6,9 @@
 --! @date 2022-05-26
 -------------------------------------------------------
 
+-- TODO: arrumar shift_amount
+-- TODO: consertar entrada do monitor
+
 library ieee;
 use ieee.math_real.all;
 use ieee.numeric_bit.all;
@@ -256,6 +259,7 @@ architecture structural of DataFlow is
 begin
 
     -- To control unit
+
     opcode <= instruction(31 downto 21);
 
     -- Sign_extension_unit
