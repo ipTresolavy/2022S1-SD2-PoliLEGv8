@@ -79,7 +79,7 @@ Register_File(instruction[4:0]) = Register_File(instruction[9:5]) and SignExt(in
 This instruction has more than one execution state:
     * link:
         * alu_control <-- 011
-        * alu_b_src <-- 10
+        * alu_b_src <-- 01
         * write_register_enable
         * write_register_src <-- 01
     * branch:
@@ -305,7 +305,7 @@ Register_File(instruction[4:0]) = Register_File(instruction[9:5]) << Register_Fi
 Register_File(instruction[4:0]) = Register_File(instruction[9:5]) >> Register_File(instruction[20:16])
 
 ## BR (R-format)
-    * alu_b_src <-- 10
+    * alu_control <-- 010
     * pc_enable
 
 instruction_read_address <-- Register_File(instruction[9:5])
