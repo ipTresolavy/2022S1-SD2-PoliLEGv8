@@ -63,13 +63,12 @@ begin
 
     stimuli: process is
         procedure reset_test_signals is
+            begin
             read_reg_a <= (others => '0');
             read_reg_b <= (others => '0');
             write_reg <= (others => '0');
             write_data <= (others => '0');
             write_enable <= '0';
-            reg_a_data <= (others => '0');
-            reg_b_data <= (others => '0');
         end procedure;
 
     begin
@@ -84,15 +83,18 @@ begin
 
         write_reg <= "11111";
         write_data <= x"0000000000000001";
-        write_register_enable <= '1';
+        write_enable <= '1';
         wait until rising_edge(clk);
 
-        -- TODO: Read XZR
+        reset_test_signals;
 
-        assert reg_b_data = x"0000000000000001" report "XZR was written!"
+        read_reg_b <= "11111";
+        wait until rising_edge(clk);
+        assert reg_b_data /= x"0000000000000001" report "XZR was written!"
             severity error;
 
         reset_test_signals;
+        clk_enable <= '0';
         wait;
     end process;
 
