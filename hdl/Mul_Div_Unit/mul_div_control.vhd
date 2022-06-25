@@ -91,6 +91,8 @@ begin
 
                 if (enable = '1') then
                     next_state <= INIT;
+                else 
+                    next_state <= IDLE;
                 end if;
 
             when INIT =>

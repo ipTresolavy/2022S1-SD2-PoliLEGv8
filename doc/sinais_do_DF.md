@@ -25,7 +25,7 @@ SignExt( Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12
 ## LDURB (D-format)
     * alu_b_src <-- 11
     * write_register_enable
-    * data_memory_src <-- 01
+    * write_register_data_src <-- 01
 
 Register_File(instruction[4:0]) = SignExt( Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12]))[7:0] )
 
@@ -47,7 +47,7 @@ Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = Sig
 ## LDURH (D-format)
     * alu_b_src <-- 11
     * write_register_enable
-    * data_memory_src <-- 01
+    * write_register_data_src <-- 01
 
 Register_File(instruction[4:0]) = SignExt( Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12]))[15:0] )
 
@@ -229,7 +229,7 @@ Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = Uns
 ## LDURSW (D-format)
     * alu_b_src <-- 11
     * write_register_enable
-    * data_memory_src <-- 10
+    * write_register_data_src <-- 01
 
 Register_File(instruction[4:0]) = SignExt( Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12]))[31:0] )
 
@@ -363,6 +363,6 @@ Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = Reg
 ## LDUR (D-format)
     * alu_b_src <-- 11
     * write_register_enable
-    * data_memory_src <-- 11
+    * write_register_data_src <-- 01
 
 Register_File(instruction[4:0]) = Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12]))
