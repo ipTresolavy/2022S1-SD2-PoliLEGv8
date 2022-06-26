@@ -6,6 +6,9 @@
 --! @date 2022-05-26
 -------------------------------------------------------
 
+library ieee;
+use ieee.numeric_bit.all;
+
 entity ALU_4 is
     generic(
         size: natural := 64
@@ -31,7 +34,7 @@ architecture adder of ALU_4 is
         );
     end component PFA;
 
-    signal increment_4: bit_vector(size - 1 downto 0) := (2 => '1', others => '0');
+    signal increment_4: bit_vector(size - 1 downto 0) := bit_vector(to_unsigned(4, size)); 
 
 begin
 
