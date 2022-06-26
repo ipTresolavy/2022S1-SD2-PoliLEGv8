@@ -69,11 +69,11 @@ end entity control_unit;
 
 architecture control_unit_beh of control_unit is
 
-    -- TODO: 8, 7, 3
     type state_type is (fetch_decode, branch_and_link, stxr_execute, branch_relative, IW, D, R_and_I, BR);
 
     signal next_state, current_state : state_type := fetch_decode;
     signal flags_mux_out, flags_mux_final, cbz, cbnz, b_flags, uncond_branch : bit;
+
 begin
         pc_src <= (b_flags and flags_mux_out) or
                   (zero and cbz) or
@@ -164,8 +164,10 @@ begin
                             next_state <= IW;
                         elsif (opcode(6 downto 3) & opcode(0) = "10000") then
                             next_state <= D;
-                        elsif (opcode = x"6B0") -- BR
+                        elsif ('0' & opcode = x"6B0") then -- BR
                             next_state <= BR;
+                        else
+                            next_state <= R_and_I;
                         end if;
 
                     -- BL
@@ -253,9 +255,31 @@ begin
                         next_state <= fetch_decode;
 
                     when R_and_I =>
-                        alu_b_src <= '1' & (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1))) -- opcode 10 is not needed (?)
-
-
+                        alu_b_src <= '1' & (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1))); -- opcode 10 is not needed (?)
+                        write_register_data_src <= ((not opcode(9)) and (not opcode(8)) and opcode(7)) & '0';
+                        set_flags <= opcode(8) and (opcode(9) or opcode(3));
+                        -- alu_control
+                            -- LSL(LSR)
+                        if(opcode(9 downto 1) = "101001101") then
+                            alu_control <= (not opcode(0)) & "11";
+                            -- ADD(SUB)
+                        elsif(opcode(5) & opcode(3 downto 1) = "0100") then
+                            alu_control <= opcode(9) & "00";
+                            -- OR
+                        elsif(opcode(9 downto 8) = "01") then
+                            alu_control <= "010";
+                            -- EOR(XOR)
+                        elsif(opcode(9 downto 8) = "10") then
+                            alu_control <= "101";
+                            -- AND
+                        else
+                            alu_control <= "001";
+                        end if;    
+                        if(((not opcode(9)) and (not opcode(8)) and opcode(7)) = '1') then
+                            mul_div_enable <= '1';
+                            wait_for_mul_div;
+                        end if;
+                        next_state <= fetch_decode;
                 end case;
 
                 wait on current_state;
