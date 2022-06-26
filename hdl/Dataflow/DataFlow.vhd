@@ -279,7 +279,7 @@ begin
 
     -- ALU
     ULA: component ALU generic map(word_size) port map(clock, reset, read_data_a, alu_b, alu_control, set_flags, shift_amount, alu_out, zero, zero_r, overflow_r, carry_out_r, negative_r);
-    alu_b_mux: component mux4x1 generic map(word_size) port map(read_data_b, alu_pc_out, read_data_b, immediate_extended, alu_b_src, alu_b);
+    alu_b_mux: component mux4x1 generic map(word_size) port map(read_data_b, alu_4_out, read_data_b, immediate_extended, alu_b_src, alu_b);
     shift_amount_mux: component mux2x1 generic map(natural(log2(real(word_size)))) port map(zero_shift, instruction(15 downto 10), shift_amount_src, shift_amount);
 
 	--mul_div_unit

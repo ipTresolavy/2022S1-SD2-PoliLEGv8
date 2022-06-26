@@ -61,33 +61,39 @@ entity control_unit is
         -- Data memory
         data_mem_enable : out bit;
         data_mem_write_en : out bit;
-        data_mem_busy   : in bit
+        data_mem_busy   : in bit;
+        data_memory_src: out bit_vector(1 downto 0)
     );
 
 end entity control_unit;
 
 architecture control_unit_beh of control_unit is
 
-    type state_type is (fetch_decode, stxr_execute, branch_relative);
+    -- TODO: 8, 7, 3
+    type state_type is (fetch_decode, branch_and_link, stxr_execute, branch_relative, IW, D, R_and_I, BR);
 
     signal next_state, current_state : state_type := fetch_decode;
     signal flags_mux_out, flags_mux_final, cbz, cbnz, b_flags, uncond_branch : bit;
 begin
-        pc_src <= (b_flags and flags_mux_out) or 
-                  (zero and cbz) or 
+        pc_src <= (b_flags and flags_mux_out) or
+                  (zero and cbz) or
                   ((not zero) and cbnz);
 
         with flags_cond_sel(3 downto 1) select flags_mux_out <=
-            zero_r when "000", 
+            zero_r when "000",
             carry_out_r when "001",
-            negative_r when "010", 
-            overflow_r when "011", 
-            not zero_r and carry_out_r when "100", 
-            negative_r xor overflow_r when "101", 
+            negative_r when "010",
+            overflow_r when "011",
+            not zero_r and carry_out_r when "100",
+            negative_r xor overflow_r when "101",
             not zero_r and not (negative_r xor overflow_r) when "110",
             '1' when others;
 
         flags_mux_final <= (flags_mux_out xor (flags_cond_sel(0) and not (flags_cond_sel(3) and flags_cond_sel(2) and flags_cond_sel(1))));
+
+        data_memory_src <= opcode(10 downto 9);
+
+        mul_div_src <= opcode(3) and opcode(1);
 
         change_of_state: process(clock, reset) is
             begin
@@ -105,15 +111,15 @@ begin
                 alu_control <= "000";
                 set_flags <= '0';
                 alu_b_src <= "00";
-                mul_div_src <= '0';
                 mul_div_enable <= '0';
                 alu_pc_b_src <= '0';
+                pc_branch_src <= '0';
                 pc_enable <= '0';
                 monitor_enable <= '0';
                 instruction_mem_enable <= '0';
                 data_mem_enable <= '0';
                 uncond_branch <= '0';
-                b_flags <= '0';                
+                b_flags <= '0';
                 cbz <= '0';
                 cbnz <= '0';
             end procedure;
@@ -150,11 +156,33 @@ begin
                         wait until instruction_mem_busy = '0';
                         instruction_mem_enable <= '0';
 
-                        -- colocar BL antes desse
-                        if (opcode(10 downto 5) = "000101" or opcode(7 downto 4) = "1010") then
+                        if (opcode(10 downto 5) = "100101") then
+                            next_state <= branch_and_link;
+                        elsif (opcode(10 downto 5) = "000101" or opcode(7 downto 4) = "1010") then
                             next_state <= branch_relative;
+                        elsif (opcode(10 downto 9) & opcode(7 downto 2) = "11100101") then
+                            next_state <= IW;
+                        elsif (opcode(6 downto 3) & opcode(0) = "10000") then
+                            next_state <= D;
+                        elsif (opcode = x"6B0") -- BR
+                            next_state <= BR;
                         end if;
 
+                    -- BL
+                    when branch_and_link =>
+                        alu_control <= "011";
+                        alu_b_src <= "01";
+                        write_register_enable <= '1';
+                        write_register_src <= "01";
+                        wait until rising_edge(clock); -- link
+                        reset_control_signals;
+
+                        uncond_branch <= '1';
+                        pc_enable <= '1';
+                        next_state <= fetch_decode;
+
+
+                    -- CBZ, CBNZ, B.cond and B
                     when branch_relative =>
                         read_register_b_src <= '1';
                         alu_control <= "011";
@@ -165,16 +193,68 @@ begin
                             uncond_branch <= '1';
                         elsif opcode(10 downto 9) = "01" then
                             b_flags <= '1';
-                        elsif opcode(10 downto 9) = "10" then 
+                        elsif opcode(10 downto 9) = "10" then
                             if opcode(4) = '0' then
                                 cbz <= '1';
                             else
                                 cbnz <= '1';
                             end if;
                         end if;
-                            
-                        
+                        next_state <= fetch_decode;
+
+                    when IW =>
+                        mov_enable <= '1';
+                        alu_control <= "011";
+                        read_register_b_src <= '1';
+                        write_register_enable <= '1';
+                        next_state <= fetch_decode;
+
+                    when D =>
+                        alu_b_src <= "11";
+                        read_register_b_src <= '1';
+                        write_register_data_src <= "01";
+
+                        -- monitor is enabled on LDXR
+                        monitor_enable <= (not opcode(8)) and opcode(1);
+
+
+                        -- Differing between Loads and Stores
+                        if(opcode(8 downto 7) & opcode(2 downto 1) = "1100") then -- Loads
+                            wait_for_data_mem(true);
+                        else -- Stores
+
+                            wait_for_data_mem(false);
+                            if (opcode(8) & opcode(1) = "00") then -- STXR
+                                read_register_a_src <= '1';
+                                write_register_src <= "11";
+                                write_register_data_src <= "11";
+                            end if;
+                            write_register_enable <= '1';
+                        end if;
+
+                        -- Deciding next state
+                        if(opcode(8) & opcode(1) & stxr_try_in = "000") then
+                            next_state <= stxr_execute;
+                        else
+                            next_state <= fetch_decode;
+                        end if;
+
                     when stxr_execute =>
+                        alu_b_src <= "11";
+                        read_register_b_src <= '1';
+
+                        next_state <= fetch_decode;
+
+                    when BR =>
+                        alu_control <= "010";
+                        pc_enable <= '1';
+                        pc_branch_src <= '1';
+                        uncond_branch <= '1';
+                        next_state <= fetch_decode;
+
+                    when R_and_I =>
+                        alu_b_src <= '1' & (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1))) -- opcode 10 is not needed (?)
+
 
                 end case;
 

@@ -8,8 +8,7 @@
 # Execute
 
 ## B (B-format)
-    * alu_control <-- 011
-    * alu_b_src <-- 11
+    * pc_src <-- 1
     * pc_enable
 
 instruction_read_address = SignExt( instruction[25:0] )
