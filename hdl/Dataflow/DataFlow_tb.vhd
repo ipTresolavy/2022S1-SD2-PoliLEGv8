@@ -29,10 +29,10 @@ architecture tb of DataFlow_tb is
             clock                    : in bit;
             reset                    : in bit;
             instruction              : in bit_vector (31 downto 0);
-            instruction_read_address : out bit_vector (integer(log2(real(instruction_memory_size))) - 1 downto 0);
+            instruction_read_address : out bit_vector (integer(ceil(log2(real(instruction_memory_size)))) - 1 downto 0);
             read_data                : in bit_vector (word_size - 1 downto 0);
             write_data               : out bit_vector (word_size - 1 downto 0);
-            data_memory_address      : out bit_vector (integer(log2(real(data_memory_size))) - 1 downto 0);
+            data_memory_address      : out bit_vector (integer(ceil(log2(real(data_memory_size)))) - 1 downto 0);
             opcode                   : out bit_vector (10 downto 0);
             zero                     : out bit;
             zero_r                   : out bit;
@@ -64,10 +64,10 @@ architecture tb of DataFlow_tb is
     -- DUT signals
     signal reset                    : bit;
     signal instruction              : bit_vector (31 downto 0);
-    signal instruction_read_address : bit_vector (integer(log2(real(instruction_memory_size))) - 1 downto 0);
+    signal instruction_read_address : bit_vector (integer(ceil(log2(real(instruction_memory_size)))) - 1 downto 0);
     signal read_data                : bit_vector (word_size - 1 downto 0);
     signal write_data               : bit_vector (word_size - 1 downto 0);
-    signal data_memory_address      : bit_vector (integer(log2(real(data_memory_size))) - 1 downto 0);
+    signal data_memory_address      : bit_vector (integer(ceil(log2(real(data_memory_size)))) - 1 downto 0);
     signal opcode                   : bit_vector (10 downto 0);
     signal zero                     : bit;
     signal zero_r                   : bit;

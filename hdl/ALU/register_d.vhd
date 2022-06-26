@@ -29,7 +29,7 @@ begin
     flip_flop: process(clock, enable, reset) is
     begin
         if(reset = '1') then
-            Q<= bit_vector(to_unsigned(reset_value, size));
+            Q <= bit_vector(to_unsigned(reset_value, size));
         elsif(enable = '1' and rising_edge(clock)) then
             Q <= D;
         end if;

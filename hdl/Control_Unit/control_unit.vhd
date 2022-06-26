@@ -35,7 +35,6 @@ entity control_unit is
             -- ALU's signals
         alu_control: out bit_vector(2 downto 0);
         set_flags: out bit;
-        shift_amount: out bit_vector(integer(log2(real(word_size))) - 1 downto 0);
         alu_b_src: out bit_vector(1 downto 0);
         	-- mul_div_unit's signals
         mul_div_src: out bit;
@@ -83,7 +82,6 @@ begin
                 mov_enable <= '0';
                 alu_control <= "000";
                 set_flags <= '0';
-                shift_amount <= "000000";
                 alu_b_src <= "00";
                 mul_div_src <= '0';
                 mul_div_enable <= '0';

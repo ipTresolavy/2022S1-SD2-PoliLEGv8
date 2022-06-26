@@ -22,5 +22,3 @@ architecture shifter of two_bit_left_shifter is
 begin
     out_doubleword <= in_doubleword sll 2;
 end architecture shifter;
-
-

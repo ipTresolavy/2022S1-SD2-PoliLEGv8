@@ -25,11 +25,11 @@ entity DataFlow is
         reset: in bit;
         -- Instruction Memory
         instruction: in bit_vector(31 downto 0);
-        instruction_read_address: out bit_vector(integer(log2(real(instruction_memory_size))) - 1 downto 0);
+        instruction_read_address: out bit_vector(integer(ceil(log2(real(instruction_memory_size)))) - 1 downto 0);
         -- Data Memory
         read_data: in bit_vector(word_size - 1 downto 0);
         write_data: out bit_vector(word_size - 1 downto 0);
-        data_memory_address: out bit_vector(integer(log2(real(data_memory_size))) - 1 downto 0);
+        data_memory_address: out bit_vector(integer(ceil(log2(real(data_memory_size)))) - 1 downto 0);
         -- To Control Unit
         opcode: out bit_vector(10 downto 0);
         zero: out bit;
@@ -80,7 +80,7 @@ architecture structural of DataFlow is
             B: in bit_vector(word_size - 1 downto 0); -- ALU B
             alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
             set_flags: in bit;
-            shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+            shift_amount: in bit_vector(integer(ceil(log2(real(word_size)))) - 1 downto 0);
             Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
             Zero: out bit; -- Vale 1, caso Y = 0
             -- Registradores de flags
@@ -189,9 +189,9 @@ architecture structural of DataFlow is
         port(
             clock                   : in  bit;
             reset                   : in  bit;
-            read_reg_a              : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
-            read_reg_b              : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
-            write_reg               : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
+            read_reg_a              : in  bit_vector(integer(ceil(log2(real(amount_of_regs)))) - 1 downto 0);
+            read_reg_b              : in  bit_vector(integer(ceil(log2(real(amount_of_regs)))) - 1 downto 0);
+            write_reg               : in  bit_vector(integer(ceil(log2(real(amount_of_regs)))) - 1 downto 0);
             write_data              : in  bit_vector(register_width-1 downto 0);
             write_enable            : in  bit;
             reg_a_data              : out bit_vector(register_width-1 downto 0);

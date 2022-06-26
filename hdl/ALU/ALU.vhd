@@ -20,7 +20,7 @@ entity ALU is
         B: in bit_vector(word_size - 1 downto 0); -- ALU B
         alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
         set_flags: in bit;
-        shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+        shift_amount: in bit_vector(integer(ceil(log2(real(word_size)))) - 1 downto 0);
         Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
         Zero: out bit; -- Vale 1, caso Y = 0
         -- Registradores de flags
@@ -63,7 +63,7 @@ architecture operations of ALU is
         port(
             A: in bit_vector(size - 1 downto 0);
             S: out bit_vector(size - 1 downto 0);
-            shift: in bit_vector(integer(log2(real(size))) - 1 downto 0)
+            shift: in bit_vector(integer(ceil(log2(real(size)))) - 1 downto 0)
         );
     end component barrel_shifter;
 
