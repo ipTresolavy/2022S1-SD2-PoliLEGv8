@@ -274,7 +274,7 @@ begin
                             -- AND
                         else
                             alu_control <= "001";
-                        end if;    
+                        end if;
                         if(((not opcode(9)) and (not opcode(8)) and opcode(7)) = '1') then
                             mul_div_enable <= '1';
                             wait_for_mul_div;
@@ -287,3 +287,4 @@ begin
 
         end process control;
 end architecture control_unit_beh;
+

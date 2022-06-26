@@ -58,7 +58,7 @@ architecture tb of DataFlow_tb is
             write_register_data_src  : in bit_vector (1 downto 0);
             write_register_enable    : in bit;
             data_memory_src          : in bit_vector (1 downto 0));
-            
+
     end component;
 
     -- DUT signals
@@ -396,13 +396,13 @@ begin
 
         -- TEST TYPE R LDXR/STXR ATOMIC
         report "test 8" severity note;
-        -- lock is at mem[reg_file[2]] and holds the value 42 
+        -- lock is at mem[reg_file[2]] and holds the value 42
         -- X1 -> initial value of the lock (taken from ldxr)
         -- X2 -> address base register
         -- X3 -> new value of the lock (stored by stxr)
         -- X4 -> status of the operation
         store_register_integer(2, 13);
-        store_register_integer(3, 43); 
+        store_register_integer(3, 43);
 
         -- load lock value into X1
         --                   op        rm     shamt     rn      rt
@@ -422,7 +422,7 @@ begin
         -- attempt to store new lock value
         --                   op        rs                   rn      rt
         instruction <= "11001000000"&"00100"&"0"&"11111"&"00010"&"00011"; --STXR X4, X3, X2
-        read_register_a_src <= '0'; -- instruction[9:5] 
+        read_register_a_src <= '0'; -- instruction[9:5]
         alu_b_src <= "11";
         alu_control <= "000";
         wait until rising_edge(clk);
@@ -436,16 +436,16 @@ begin
         wait until rising_edge(clk);
         wait for clk_period/2;
         assert_register_integer(4, 0, "bad status register");
-        
+
         -- TEST TYPE R LDXR/STXR NON-ATOMIC
         report "test 9" severity note;
-        -- lock is at mem[reg_file[2]] and holds the value 42 
+        -- lock is at mem[reg_file[2]] and holds the value 42
         -- X1 -> initial value of the lock (taken from ldxr)
         -- X2 -> address base register
         -- X3 -> new value of the lock (stored by stxr)
         -- X4 -> status of the operation
         store_register_integer(2, 13);
-        store_register_integer(3, 43); 
+        store_register_integer(3, 43);
 
         -- load lock value into X1
         --                   op        rm     shamt     rn      rt
@@ -465,7 +465,7 @@ begin
         -- attempt to store new lock value
         --                   op        rs                   rn      rt
         instruction <= "11001000000"&"00100"&"0"&"11111"&"00010"&"00011"; --STXR X4, X3, X2
-        read_register_a_src <= '0'; -- instruction[9:5] 
+        read_register_a_src <= '0'; -- instruction[9:5]
         alu_b_src <= "11";
         alu_control <= "000";
         wait until rising_edge(clk);
@@ -545,35 +545,41 @@ begin
         instruction <= "000101"&"00"&x"00007F"; -- B (2^7 - 1)
         alu_control <= "011"; -- ALU pass-b operation
         alu_b_src <= "11"; -- alu_b <-- ALU_immediate
+        pc_src <= '1';
         pc_enable <= '1';
         wait until rising_edge(clk);
-        wait for clk_period/2;
-        assert instruction_read_address = "1111111" report "Error on PC during branch instruction"
-            severity error;
-        wait for clk_period/2;
-
         reset_test_signals;
+        wait for clk_period/2;
+        -- 100 0000
+        -- 111 1100
+        -- 011 1100
+        assert instruction_read_address = "0111100" report "Error on PC during branch instruction"
+            severity error;  --                100
+        wait for clk_period*(3/2); --      1000000
+
 
         --                op     BR_address
-        instruction <= "100101"&"00"&x"000000"; -- BL #0
+        instruction <= "100101"&"00"&x"000001"; -- BL #1
         -- link:
         alu_control <= "011";
-        alu_b_src <= "10";
+        alu_b_src <= "01";
         write_register_src <= "01";
         write_register_enable <= '1';
         wait until rising_edge(clk);
         reset_test_signals;
+        assert_register_bit_vector(30, x"0000000000000240", "Error on link register value during branch-and-link");
 
         -- branch
         alu_control <= "011"; -- ALU pass-b operation
         alu_b_src <= "11"; -- alu_b <-- ALU_immediate
+        pc_src <= '1';
         pc_enable <= '1';
         wait until rising_edge(clk);
+        reset_test_signals;
         wait for clk_period/2;
-        assert instruction_read_address = "0000000" report "Error on PC during branch-and-link instruction"
+        assert instruction_read_address = "1000000" report "Error on PC during branch-and-link instruction"
             severity error;
         wait for clk_period/2;
-        assert_register_bit_vector(30, x"000000000000007F", "Error on link register value during branch-and-link");
 
         -- TEST OF CB-FORMAT INSTRUCTIONS
         report "test 12" severity note;
@@ -587,7 +593,7 @@ begin
         read_register_b_src <= '1';
         wait until rising_edge(clk);
         wait for clk_period/2;
-        assert instruction_read_address = "1111100" report "Error on PC during compare-and-branch-if-zero instruction"
+        assert instruction_read_address = "0111100" report "Error on PC during compare-and-branch-if-zero instruction"
             severity error;
         wait for clk_period/2;
 
@@ -600,7 +606,7 @@ begin
         pc_enable <= '1';
         read_register_b_src <= '1';
         wait until rising_edge(clk);
-        assert instruction_read_address = "1111000" report "Error on PC during compare-and-branch-if-not-zero instruction"
+        assert instruction_read_address = "0111000" report "Error on PC during compare-and-branch-if-not-zero instruction"
             severity error;
 
         -- TEST OF IW/IM-FORMAT INSTRUCTIONS
