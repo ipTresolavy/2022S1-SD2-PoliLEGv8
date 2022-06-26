@@ -24,7 +24,7 @@ entity control_unit is
         opcode: in bit_vector(10 downto 0);
         zero: in bit;
         zero_r: in bit;
-        carry_in_r: in bit;
+        carry_out_r: in bit;
         overflow_r: in bit;
         negative_r: in bit;
         stxr_try_in: in bit;
@@ -62,11 +62,34 @@ end entity control_unit;
 
 architecture control_unit_beh of control_unit is
 
-    type state_type is (fetch, decode_execute, stxr_execute);
+    type state_type is (fetch_decode, stxr_execute, branch_relative);
 
     signal next_state, current_state : state_type := fetch;
-
+    signal flags_mux_out, cbz, cbnz, uncond_branch : bit;
+    signal flags_mux_sel : bit_vector(3 downto 0);
 begin
+        pc_src <= (b_cond and flags_mux_out) or 
+                  (zero and cbz) or 
+                  ((not zero) and cbnz) or
+                  uncond_branch;
+
+        with flags_mux_sel select flags_mux_out <=
+            negative_r when "0000", 
+            not negative_r when "0001", 
+            overflow_r when "0010", 
+            not overflow_r when "0011", 
+            zero_r when "0100", 
+            not zero_r when "0101", 
+            negative_r xor overflow_r when "0110", 
+            zero_r or (negative_r xor overflow_r) when "0111", 
+            not zero_r and not (negative_r xor overflow_r) when "1000", 
+            not (negative_r xor overflow_r) when "1001", 
+            zero_r when "1010", 
+            not zero_r when "1011", 
+            not carry_out_r when "1100", 
+            not (not zero_r and carry_out_r) when "1101", 
+            not zero_r and carry_out_r when "1110", 
+            carry_out_r when "1111";
 
         change_of_state: process(clock, reset) is
             begin
@@ -118,8 +141,8 @@ begin
             end procedure;
 
             begin
-
                 reset_control_signals;
+
                 case current_state is
                     when fetch =>
                         instruction_mem_enable <= '1';
@@ -128,14 +151,24 @@ begin
                         instruction_mem_enable <= '0';
                         next_state <= decode_execute;
 
-                    when decode_execute =>
+                        -- colocar BL antes desse
+                        if (opcode(10 downto 5) = "000101" or opcode(7 downto 4) = "1010")
+                            next_state <= branch_relative;
+                        end if;
+
+                    when branch_relative =>
+                        read_register_b_src <= '1';
+                        alu_control <= "011";
+                        pc_enable <= '1';
+
+                        if 
+                        
                     when stxr_execute =>
+
                 end case;
 
                 wait on current_state;
                 wait on clock;
 
         end process control;
-
-
 end architecture control_unit_beh;
