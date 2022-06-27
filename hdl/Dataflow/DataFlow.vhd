@@ -6,8 +6,6 @@
 --! @date 2022-05-26
 -------------------------------------------------------
 
--- TODO: arrumar shift_amount
-
 library ieee;
 use ieee.math_real.all;
 use ieee.numeric_bit.all;
@@ -312,7 +310,7 @@ begin
     mov_immediate <= bit_vector(resize(signed(instruction(20 downto 5)),word_size/4));
 
     -- Register File
-    Banco_de_registradores: component register_file generic map(32, word_size, 0) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
+    Banco_de_registradores: component register_file generic map(32, word_size, reg_reset_value) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
     read_register_a_mux: component mux2x1 generic map(5) port map(instruction(9 downto 5), monitor_out, read_register_a_src, read_register_a);
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
     write_register_mux: component mux4x1 generic map(5) port map(instruction(4 downto 0), "11110", instruction(4 downto 0), instruction(20 downto 16), write_register_src, write_register);
