@@ -12,9 +12,6 @@ use ieee.math_real.all;
 use ieee.numeric_bit.all;
 
 entity control_unit is
-    generic(
-        word_size: natural := 64
-    );
     port(
         -- Common
         clock: in bit;
