@@ -34,6 +34,7 @@ entity control_unit is
         alu_control: out bit_vector(2 downto 0);
         set_flags: out bit;
         alu_b_src: out bit_vector(1 downto 0);
+        shift_amount_src: out bit;
         	-- mul_div_unit's signals
         mul_div_src: out bit;
         mul_div_busy : in bit;
@@ -108,6 +109,7 @@ begin
                 alu_control <= "000";
                 set_flags <= '0';
                 alu_b_src <= "00";
+                shift_amount_src <= '0';
                 mul_div_enable <= '0';
                 alu_pc_b_src <= '0';
                 pc_branch_src <= '0';
@@ -258,6 +260,7 @@ begin
                         -- alu_control
                             -- LSL(LSR)
                         if(opcode(9 downto 1) = "101001101") then
+                            shift_amount_src <= '1';
                             alu_control <= (not opcode(0)) & "11";
                             -- ADD(SUB)
                         elsif(opcode(5) & opcode(3 downto 1) = "0100") then
