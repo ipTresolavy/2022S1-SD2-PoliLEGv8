@@ -255,12 +255,12 @@ begin
 
                     when R_and_I =>
                         alu_b_src <= '1' & (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1))); -- opcode 10 is not needed (?)
+                        shift_amount_src <= not (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1)));
                         write_register_data_src <= ((not opcode(9)) and (not opcode(8)) and opcode(7)) & '0';
                         set_flags <= opcode(8) and (opcode(9) or opcode(3));
                         -- alu_control
                             -- LSL(LSR)
                         if(opcode(9 downto 1) = "101001101") then
-                            shift_amount_src <= '1';
                             alu_control <= (not opcode(0)) & "11";
                             -- ADD(SUB)
                         elsif(opcode(5) & opcode(3 downto 1) = "0100") then
