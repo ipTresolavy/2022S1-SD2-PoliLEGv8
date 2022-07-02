@@ -294,4 +294,3 @@ begin
 
         end process control;
 end architecture control_unit_beh;
-
