@@ -343,8 +343,8 @@ begin
         mul_div_src <= '0';             -- get low register
         mul_div_enable <= '1';
         wait until mul_div_busy = '1';
-        wait until mul_div_busy = '0';
         mul_div_enable <= '0';
+        wait until mul_div_busy = '0';
 
         write_register_src <= "00";
         write_register_data_src <= "10";
@@ -363,8 +363,8 @@ begin
         mul_div_src <= '1';             -- get high register
         mul_div_enable <= '1';
         wait until mul_div_busy = '1';
-        wait until mul_div_busy = '0';
         mul_div_enable <= '0';
+        wait until mul_div_busy = '0';
 
         write_register_src <= "00";
         write_register_data_src <= "10";
