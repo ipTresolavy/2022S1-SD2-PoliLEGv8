@@ -67,9 +67,9 @@ end entity control_unit;
 
 architecture control_unit_beh of control_unit is
 
-    type state_type is (fetch_decode, branch_and_link, stxr_execute, branch_relative, IW, D, R_and_I, BR);
+    type state_type is (idle, fetch_decode, branch_and_link, stxr_execute, branch_relative, IW, D, R_and_I, BR);
 
-    signal next_state, current_state : state_type := fetch_decode;
+    signal next_state, current_state : state_type := idle;
     signal flags_mux_out, flags_mux_final, cbz, cbnz, b_flags, uncond_branch : bit;
 
 begin
@@ -96,7 +96,7 @@ begin
         change_of_state: process(clock, reset) is
             begin
                 if reset = '1' then
-                    current_state <= fetch_decode;
+                    current_state <= idle;
                 elsif rising_edge(clock) then
                     current_state <= next_state;
                 end if;
@@ -149,6 +149,9 @@ begin
                 reset_control_signals;
 
                 case current_state is
+                    when idle =>
+                        next_state <= fetch_decode;
+
                     when fetch_decode =>
                         instruction_mem_enable <= '1';
                         wait until instruction_mem_busy = '1';
@@ -208,6 +211,7 @@ begin
                         alu_control <= "011";
                         read_register_b_src <= '1';
                         write_register_enable <= '1';
+                        pc_enable <= '1';
                         next_state <= fetch_decode;
 
                     when D =>
@@ -237,6 +241,7 @@ begin
                         if(opcode(8) & opcode(1) & stxr_try_in = "000") then
                             next_state <= stxr_execute;
                         else
+                            pc_enable <= '1';
                             next_state <= fetch_decode;
                         end if;
 
@@ -244,6 +249,7 @@ begin
                         alu_b_src <= "11";
                         read_register_b_src <= '1';
 
+                        pc_enable <= '1';
                         next_state <= fetch_decode;
 
                     when BR =>
@@ -279,6 +285,7 @@ begin
                             mul_div_enable <= '1';
                             wait_for_mul_div;
                         end if;
+                        pc_enable <= '1';
                         next_state <= fetch_decode;
                 end case;
 
