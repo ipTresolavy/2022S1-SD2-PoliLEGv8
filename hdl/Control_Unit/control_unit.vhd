@@ -121,6 +121,12 @@ begin
                 b_flags <= '0';
                 cbz <= '0';
                 cbnz <= '0';
+                read_register_a_src <= '0';
+                read_register_b_src <= '0';
+                write_register_src <= "00";
+                write_register_data_src <= "00";
+                write_register_enable <= '0';
+                data_mem_write_en <= '0'; 
             end procedure;
 
             procedure wait_for_data_mem(we:boolean) is

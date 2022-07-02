@@ -31,6 +31,12 @@ architecture testbench of polilegv8_tb is
     end function;
 
     component polilegv8
+        generic(
+            word_size: natural := 64;
+            data_memory_size: natural := 1024;
+            instruction_memory_size: natural := 128;
+            reg_reset_value: natural := 0
+        );
         port (
             clock                    : in bit;
             reset                    : in bit;
@@ -175,9 +181,9 @@ begin
                 if ("00"&data_memory_address = x"3FE") then -- write to screen
                     --report bv_to_string(write_data) severity note;
                     report integer'image(to_integer(unsigned(write_data))) severity note;
-                    report "escreveu na memoria" severity note;
                 else -- terminate simulation
                     tb_clock_ticking <= '0';
+                    report "sim should end now!" severity note;
                 end if;
             end if;
             testbench_io_busy <= '0';
