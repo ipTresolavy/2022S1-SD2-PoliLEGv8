@@ -297,7 +297,7 @@ begin
     pc_branch_mux: component mux2x1 generic map(word_size) port map(alu_pc_out, alu_out, pc_branch_src, pc_branch);
     pc_mux: component mux2x1 generic map(word_size) port map(alu_4_out, pc_branch, pc_src, pc_in);
 
-    -- Monitor
+    -- Monitor (Salustiano?)
     Monitor: component register_d generic map(5) port map(instruction(4 downto 0), clock, monitor_enable, reset, monitor_out);
 
     -- Instruction Memory
