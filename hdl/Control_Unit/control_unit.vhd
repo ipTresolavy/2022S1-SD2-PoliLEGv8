@@ -126,7 +126,7 @@ begin
                 write_register_src <= "00";
                 write_register_data_src <= "00";
                 write_register_enable <= '0';
-                data_mem_write_en <= '0'; 
+                data_mem_write_en <= '0';
             end procedure;
 
             procedure wait_for_data_mem(we:boolean) is
@@ -288,7 +288,7 @@ begin
                             alu_control <= "001";
                         end if;
 
-                        if (((not opcode(9)) and (not opcode(8)) and opcode(7)) = '1') then
+                       if (((not opcode(9)) and (not opcode(8)) and opcode(7) and opcode(6)) = '1') then
                             mul_div_enable <= '1';
                             wait_for_mul_div;
                         end if;
