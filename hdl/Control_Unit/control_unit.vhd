@@ -287,10 +287,13 @@ begin
                         else
                             alu_control <= "001";
                         end if;
-                        if(((not opcode(9)) and (not opcode(8)) and opcode(7)) = '1') then
+
+                        if (((not opcode(9)) and (not opcode(8)) and opcode(7)) = '1') then
                             mul_div_enable <= '1';
                             wait_for_mul_div;
                         end if;
+
+                        write_register_enable <= '1';
                         pc_enable <= '1';
                         next_state <= fetch_decode;
                 end case;
