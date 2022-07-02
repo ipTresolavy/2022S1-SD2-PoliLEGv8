@@ -198,7 +198,7 @@ begin
                         elsif opcode(10 downto 9) = "01" then
                             b_flags <= '1';
                         elsif opcode(10 downto 9) = "10" then
-                            if opcode(4) = '0' then
+                            if opcode(3) = '0' then
                                 cbz <= '1';
                             else
                                 cbnz <= '1';
