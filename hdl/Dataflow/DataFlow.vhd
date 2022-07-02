@@ -1,4 +1,3 @@
-
 -------------------------------------------------------
 --! @file DataFlow.vhd
 --! @brief Dataflow do polilegv8
@@ -207,9 +206,6 @@ architecture structural of DataFlow is
         );
     end component sign_extension_unit;
 
-    -- Common
-    signal not_clock: bit;
-
     -- Sign_extension_unit
     signal immediate_extended: bit_vector(word_size - 1 downto 0);
 
@@ -271,8 +267,6 @@ architecture structural of DataFlow is
 
 begin
 
-    not_clock <= not clock;
-
     -- To control unit
 
     opcode <= instruction(31 downto 21);
@@ -304,7 +298,7 @@ begin
     pc_mux: component mux2x1 generic map(word_size) port map(alu_4_out, pc_branch, pc_src, pc_in);
 
     -- Monitor
-    Monitor: component register_d generic map(5) port map(instruction(4 downto 0), not_clock, monitor_enable, reset, monitor_out);
+    Monitor: component register_d generic map(5) port map(instruction(4 downto 0), clock, monitor_enable, reset, monitor_out);
 
     -- Instruction Memory
     instruction_read_address <= bit_vector(resize(unsigned(pc_out), integer(log2(real(instruction_memory_size)))));
@@ -315,7 +309,7 @@ begin
     mov_immediate <= bit_vector(resize(signed(instruction(20 downto 5)),word_size/4));
 
     -- Register File
-    Banco_de_registradores: component register_file generic map(32, word_size, reg_reset_value) port map(not_clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
+    Banco_de_registradores: component register_file generic map(32, word_size, reg_reset_value) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
     read_register_a_mux: component mux2x1 generic map(5) port map(instruction(9 downto 5), monitor_out, read_register_a_src, read_register_a);
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
     write_register_mux: component mux4x1 generic map(5) port map(instruction(4 downto 0), "11110", instruction(4 downto 0), instruction(20 downto 16), write_register_src, write_register);
@@ -341,3 +335,4 @@ begin
     read_data_memory_w <= bit_vector(resize(unsigned(read_data(word_size/2 - 1 downto 0)), word_size));
 
 end architecture structural;
+

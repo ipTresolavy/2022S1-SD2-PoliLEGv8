@@ -123,14 +123,6 @@ begin
                 cbnz <= '0';
             end procedure;
 
-            procedure wait_for_instruction_mem is
-            begin
-                instruction_mem_enable <= '1';
-                wait until instruction_mem_busy = '1';
-                wait until instruction_mem_busy = '0';
-                instruction_mem_enable <= '0';
-            end procedure;
-
             procedure wait_for_data_mem(we:boolean) is
                 begin
                 data_mem_enable <= '1';
@@ -161,7 +153,10 @@ begin
                         next_state <= fetch_decode;
 
                     when fetch_decode =>
-                        wait_for_instruction_mem;
+                        instruction_mem_enable <= '1';
+                        wait until instruction_mem_busy = '1';
+                        wait until instruction_mem_busy = '0';
+                        instruction_mem_enable <= '0';
 
                         if (opcode(10 downto 5) = "100101") then
                             next_state <= branch_and_link;
@@ -231,10 +226,9 @@ begin
                         -- Differing between Loads and Stores
                         if(opcode(8 downto 7) & opcode(2 downto 1) = "1100") then -- Loads
                             wait_for_data_mem(true);
-                            reset_control_signals;
                         else -- Stores
+
                             wait_for_data_mem(false);
-                            reset_control_signals;
                             if (opcode(8) & opcode(1) = "00") then -- STXR
                                 read_register_a_src <= '1';
                                 write_register_src <= "11";
@@ -290,7 +284,6 @@ begin
                         if(((not opcode(9)) and (not opcode(8)) and opcode(7)) = '1') then
                             mul_div_enable <= '1';
                             wait_for_mul_div;
-                            reset_control_signals;
                         end if;
                         pc_enable <= '1';
                         next_state <= fetch_decode;
@@ -301,3 +294,4 @@ begin
 
         end process control;
 end architecture control_unit_beh;
+
