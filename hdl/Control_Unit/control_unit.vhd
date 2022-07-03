@@ -245,7 +245,7 @@ begin
                         end if;
 
                         -- Deciding next state
-                        if(opcode(8) & opcode(1) & stxr_try_in = "000") then
+                        if(opcode(8) & opcode(1) = "00") then
                             next_state <= stxr_execute;
                         else
                             pc_enable <= '1';
@@ -255,7 +255,9 @@ begin
                     when stxr_execute =>
                         alu_b_src <= "11";
                         read_register_b_src <= '1';
-
+                        if(stxr_try_in = '0') then
+                            wait_for_data_mem(true);
+                        end if;
                         pc_enable <= '1';
                         next_state <= fetch_decode;
 

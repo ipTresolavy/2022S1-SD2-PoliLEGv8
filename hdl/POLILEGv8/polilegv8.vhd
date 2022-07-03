@@ -144,8 +144,7 @@ architecture polilegv8_processor of polilegv8 is
     signal read_register_b_src          : bit;
     signal set_flags                    : bit;
     signal shift_amount_src             : bit;
-    signal stxr_try_in                  : bit;
-    signal stxr_try_out                 : bit;
+    signal stxr_try                     : bit;
     signal write_register_data_src      : bit_vector (1 downto 0);
     signal write_register_enable        : bit;
     signal write_register_src           : bit_vector(1 downto 0);
@@ -163,7 +162,7 @@ begin
               carry_out_r             => carry_out_r,
               overflow_r              => overflow_r,
               negative_r              => negative_r,
-              stxr_try_in             => stxr_try_in,
+              stxr_try_in             => stxr_try,
               flags_cond_sel          => flags_cond_sel,
               mov_enable              => mov_enable,
               alu_control             => alu_control,
@@ -211,7 +210,7 @@ begin
         carry_out_r              => carry_out_r,
         overflow_r               => overflow_r,
         negative_r               => negative_r,
-        stxr_try_out             => stxr_try_out,
+        stxr_try_out             => stxr_try,
         mov_enable               => mov_enable,
         alu_control              => alu_control,
         set_flags                => set_flags,
