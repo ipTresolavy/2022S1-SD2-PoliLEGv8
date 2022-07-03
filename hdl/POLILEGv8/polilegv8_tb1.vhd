@@ -10,15 +10,15 @@ use ieee.numeric_bit.all;
 use ieee.math_real.all;
 use std.textio.all;
 
-entity polilegv8_tb is
-end polilegv8_tb;
+entity polilegv8_tb2 is
+end polilegv8_tb2;
 
-architecture testbench of polilegv8_tb is
+architecture testbench of polilegv8_tb2 is
     constant WORD_SIZE : natural := 64;
     constant DATA_MEMORY_SIZE : natural := 1024;
-    constant INSTRUCTION_MEMORY_SIZE : natural := 128;
+    constant INSTRUCTION_MEMORY_SIZE : natural := 64;
     constant DATA_MEMORY_IMAGE_PATH : string := "../../tools/data_memory_arquivo.dat";
-    constant INSTRUCTION_MEMORY_IMAGE_PATH : string := "../../tools/print-decimal.dat";
+    constant INSTRUCTION_MEMORY_IMAGE_PATH : string := "../../tools/exclude.dat";
     constant CLOCK_PERIOD : time := 100 ns;
 
     pure function bv_to_string(vec : bit_vector) return string is

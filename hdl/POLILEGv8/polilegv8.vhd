@@ -57,6 +57,7 @@ architecture polilegv8_processor of polilegv8 is
               alu_control             : out bit_vector (2 downto 0);
               set_flags               : out bit;
               alu_b_src               : out bit_vector (1 downto 0);
+              shift_amount_src        : out bit;
               mul_div_src             : out bit;
               mul_div_busy            : in bit;
               mul_div_enable          : out bit;
@@ -97,19 +98,19 @@ architecture polilegv8_processor of polilegv8 is
             zero                     : out bit;
             zero_r                   : out bit;
             carry_out_r              : out bit;
-            pc_branch_src            : in bit;
             overflow_r               : out bit;
             negative_r               : out bit;
             stxr_try_out             : out bit;
             mov_enable               : in bit;
             alu_control              : in bit_vector (2 downto 0);
             set_flags                : in bit;
-            alu_b_src                : in bit_vector (1 downto 0);
             shift_amount_src         : in bit;
+            alu_b_src                : in bit_vector (1 downto 0);
             mul_div_src              : in bit;
             mul_div_busy             : out bit;
             mul_div_enable           : in bit;
             pc_src                   : in bit;
+            pc_branch_src            : in bit;
             pc_enable                : in bit;
             monitor_enable           : in bit;
             read_register_a_src      : in bit;
@@ -168,6 +169,7 @@ begin
               alu_control             => alu_control,
               set_flags               => set_flags,
               alu_b_src               => alu_b_src,
+              shift_amount_src        => shift_amount_src,
               mul_div_src             => mul_div_src,
               mul_div_busy            => mul_div_busy,
               mul_div_enable          => mul_div_enable,

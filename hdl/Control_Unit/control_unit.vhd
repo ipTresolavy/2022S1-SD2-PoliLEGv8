@@ -75,7 +75,8 @@ architecture control_unit_beh of control_unit is
 begin
         pc_src <= (b_flags and flags_mux_out) or
                   (zero and cbz) or
-                  ((not zero) and cbnz);
+                  ((not zero) and cbnz) or
+                  uncond_branch;
 
         with flags_cond_sel(3 downto 1) select flags_mux_out <=
             zero_r when "000",
@@ -268,7 +269,7 @@ begin
                     when R_and_I =>
                         alu_b_src <= '1' & (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1))); -- opcode 10 is not needed (?)
                         shift_amount_src <= not (opcode(7) and (not opcode(6)) and (not opcode(5)) and (not opcode(2)) and (not opcode(1)));
-                        write_register_data_src <= ((not opcode(9)) and (not opcode(8)) and opcode(7)) & '0';
+                        write_register_data_src <= ((not opcode(9)) and (not opcode(8)) and opcode(7) and opcode(6)) & '0';
                         set_flags <= opcode(8) and (opcode(9) or opcode(3));
                         -- alu_control
                             -- LSL(LSR)
