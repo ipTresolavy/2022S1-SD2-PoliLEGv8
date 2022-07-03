@@ -29,7 +29,7 @@ architecture signExt of sign_extension_unit is
     signal MOV_immediate    : bit_vector(15 downto 0);
 
     -- mux source controller signals for bit field selection
-    signal D_type, CB_type, IM_type, B_type, STXR : boolean;
+    signal D_type, CB_type, IM_type, B_type, atomic : boolean;
     -- if none of the above are asserted, I_type is assumed
 
     begin
@@ -43,7 +43,7 @@ architecture signExt of sign_extension_unit is
         D_type <= true when (legv8_instruction(27 downto 24) & legv8_instruction(21) = "10000") else
                   false;
 
-        STXR <= true when (legv8_instruction(31 downto 21) = "11001000000") else
+        atomic <= true when (legv8_instruction(31 downto 23) & legv8_instruction(21) = "110010000" & "0") else
                 false;
 
         CB_type <= true when (legv8_instruction(28 downto 25) = "1010") else
@@ -58,8 +58,8 @@ architecture signExt of sign_extension_unit is
         signExt_imm <= bit_vector(resize(signed(BR_address), doubleword_width))     when B_type else
                        bit_vector(resize(signed(MOV_immediate), doubleword_width))  when IM_type else
                        bit_vector(resize(signed(COND_BR_address), doubleword_width))when CB_type else
-                       bit_vector(to_unsigned(0, doubleword_width)) when (D_type and STXR) else
-                       bit_vector(resize(signed(DT_address), doubleword_width))     when (D_type and not STXR) else
+                       bit_vector(to_unsigned(0, doubleword_width)) when (D_type and atomic) else
+                       bit_vector(resize(signed(DT_address), doubleword_width))     when (D_type and not atomic) else
                        bit_vector(resize(signed(ALU_immediate), doubleword_width));
 
 end architecture signExt;
