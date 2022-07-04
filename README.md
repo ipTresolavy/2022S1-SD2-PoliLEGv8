@@ -5,78 +5,78 @@ O processador é uma variação de um ARMv8 chamada de LEGv8, o Poli vem da noss
 
 ## Processador
 - [X] Memórias
-- [ ] Fluxo de Dados
+- [X] Fluxo de Dados
     - [X] ULA 64b
     - [X] Banco de registradores
 - Instruções (monociclo)
-    * [ ] B
-    * [ ] AND
-    * [ ] ADD
-    * [ ] ORR
-    * [ ] CBZ
-    * [ ] SUB
-    * [ ] STUR
-    * [ ] LDUR
+    * [X] B
+    * [X] AND
+    * [X] ADD
+    * [X] ORR
+    * [X] CBZ
+    * [X] SUB
+    * [X] STUR
+    * [X] LDUR
 - Instruções (completo, inclui as monociclo)
-    * [ ] B
-    * [ ] STURB
-    * [ ] LDURB
-    * [ ] B.cond
-        * [ ] B.EQ
-        * [ ] B.NE
-        * [ ] B.LT
-        * [ ] B.LE
-        * [ ] B.GT
-        * [ ] B.GE
-        * [ ] B.LO
-        * [ ] B.LS
-        * [ ] B.HI
-        * [ ] B.HS
-        * [ ] B.MI
-        * [ ] B.PL
-        * [ ] B.VS
-        * [ ] B.VC
-    * [ ] STURH
-    * [ ] LDURH
-    * [ ] AND
-    * [ ] ADD
-    * [ ] ADDI
-    * [ ] ANDI
-    * [ ] BL
-    * [ ] SDIV
-    * [ ] UDIV
-    * [ ] MUL
-    * [ ] SMULH
-    * [ ] UMULH
-    * [ ] ORR
-    * [ ] ADDS
-    * [ ] ADDIS
-    * [ ] ORRI
-    * [ ] CBZ
-    * [ ] CBNZ
-    * [ ] STURW
-    * [ ] LDURSW
-    * [ ] STURS
-    * [ ] LDURS
-    * [ ] STXR
-    * [ ] LDXR
-    * [ ] EOR
-    * [ ] SUB
-    * [ ] SUBI
-    * [ ] EORI
-    * [ ] MOVZ
-    * [ ] LSR
-    * [ ] LSL
-    * [ ] BR
-    * [ ] ANDS
-    * [ ] SUBS
-    * [ ] SUBIS
-    * [ ] ANDIS
-    * [ ] MOVK
-    * [ ] STUR
-    * [ ] LDUR
-    * [ ] STURD
-    * [ ] LDURD
+    * [X] B
+    * [X] STURB
+    * [X] LDURB
+    * [X] B.cond
+        * [X] B.EQ
+        * [X] B.NE
+        * [X] B.LT
+        * [X] B.LE
+        * [X] B.GT
+        * [X] B.GE
+        * [X] B.LO
+        * [X] B.LS
+        * [X] B.HI
+        * [X] B.HS
+        * [X] B.MI
+        * [X] B.PL
+        * [X] B.VS
+        * [X] B.VC
+    * [X] STURH
+    * [X] LDURH
+    * [X] AND
+    * [X] ADD
+    * [X] ADDI
+    * [X] ANDI
+    * [X] BL
+    * [X] SDIV
+    * [X] UDIV
+    * [X] MUL
+    * [X] SMULH
+    * [X] UMULH
+    * [X] ORR
+    * [X] ADDS
+    * [X] ADDIS
+    * [X] ORRI
+    * [X] CBZ
+    * [X] CBNZ
+    * [X] STURW
+    * [X] LDURSW
+    * [X] STURS
+    * [X] LDURS
+    * [X] STXR
+    * [X] LDXR
+    * [X] EOR
+    * [X] SUB
+    * [X] SUBI
+    * [X] EORI
+    * [X] MOVZ
+    * [X] LSR
+    * [X] LSL
+    * [X] BR
+    * [X] ANDS
+    * [X] SUBS
+    * [X] SUBIS
+    * [X] ANDIS
+    * [X] MOVK
+    * [X] STUR
+    * [X] LDUR
+    * [X] STURD
+    * [X] LDURD
 - Instruções de ponto flutuante (opcional):
     * [ ] FMULS
     * [ ] FDIVS
