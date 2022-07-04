@@ -17,8 +17,8 @@ architecture testbench of polilegv8_tb2 is
     constant WORD_SIZE : natural := 64;
     constant DATA_MEMORY_SIZE : natural := 1024;
     constant INSTRUCTION_MEMORY_SIZE : natural := 64;
-    constant DATA_MEMORY_IMAGE_PATH : string := "../../tools/data_memory_arquivo.dat";
-    constant INSTRUCTION_MEMORY_IMAGE_PATH : string := "../../tools/exclude.dat";
+    constant DATA_MEMORY_IMAGE_PATH : string := "../../tools/mul-overflow-detect/data-memory-mul-overflow-detect.dat";
+    constant INSTRUCTION_MEMORY_IMAGE_PATH : string := "../../tools/mul-overflow-detect/mul-overflow-detect.dat";
     constant CLOCK_PERIOD : time := 100 ns;
 
     pure function bv_to_string(vec : bit_vector) return string is

@@ -328,11 +328,11 @@ begin
     write_data_memory_mux: component mux4x1 generic map(word_size) port map(write_data_memory_b, write_data_memory_h, write_data_memory_w, read_data_b, data_memory_src, write_data);
     write_data_memory_b <= bit_vector(resize(unsigned(read_data_b(word_size/8 - 1 downto 0)), word_size));
     write_data_memory_h <= bit_vector(resize(unsigned(read_data_b(word_size/4 - 1 downto 0)), word_size));
-    write_data_memory_w <= bit_vector(resize(signed(read_data_b(word_size/2 - 1 downto 0)), word_size));
+    write_data_memory_w <= bit_vector(resize(unsigned(read_data_b(word_size/2 - 1 downto 0)), word_size));
     read_data_memory_mux: component mux4x1 generic map(word_size) port map(read_data_memory_b, read_data_memory_h, read_data_memory_w, read_data, data_memory_src, read_data_mux_out);
     read_data_memory_b <= bit_vector(resize(unsigned(read_data(word_size/8 - 1 downto 0)), word_size));
     read_data_memory_h <= bit_vector(resize(unsigned(read_data(word_size/4 - 1 downto 0)), word_size));
-    read_data_memory_w <= bit_vector(resize(unsigned(read_data(word_size/2 - 1 downto 0)), word_size));
+    read_data_memory_w <= bit_vector(resize(signed(read_data(word_size/2 - 1 downto 0)), word_size));
 
 end architecture structural;
 
