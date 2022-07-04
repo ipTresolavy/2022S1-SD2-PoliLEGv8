@@ -21,7 +21,7 @@ architecture testbench of barrel_shifter_tb is
         port(
             A: in bit_vector(size - 1 downto 0);
             S: out bit_vector(size - 1 downto 0);
-            shift: in bit_vector(integer(floor(log2(real(size)))) - 1 downto 0)
+            shift: in bit_vector(integer(ceil(log2(real(size)))) - 1 downto 0)
         );
     end component barrel_shifter;
 

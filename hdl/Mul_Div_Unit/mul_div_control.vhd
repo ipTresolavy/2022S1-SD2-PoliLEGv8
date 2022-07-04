@@ -35,7 +35,7 @@ entity mul_div_control is
 end entity;
 
 architecture fsm of mul_div_control is
-    type state_type is (IDLE, INIT, EXEC_MUL, EXEC_DIV);
+    type state_type is (IDLE, EXEC_MUL, EXEC_DIV, INV_LO, HOLD);
 
     component counter is
         generic (
@@ -79,71 +79,87 @@ begin
     end process TRANSITION;
 
     CONTROL: process (state, enable, cnt_timeout, div, sgn, lo_lsb, adder_carry_out, clk) is
+        procedure reset_control_signals is
+        begin
+            adder_A_src <= '0';
+            sub <= '0';
+            inv_src <= '0';
+            write_lo_src <= '0';
+            sel_lo <= "00";
+            sel_hi <= "00";
+            write_hi_src <= '0';
+            clr_hi <= '0';
+            clr_lo <= '0';
+            arit_shift_right <= '0';
+            cnt_enable <= '0';
+            cnt_reset_internal <= '0';
+        end procedure;
     begin
-        sel_lo <= "00"; sel_hi <= "00"; -- don't change high or low registers
-        clr_hi <= '0'; clr_lo <= '0';
-        cnt_enable <= '0';
+        reset_control_signals;
 
         case state is
             when IDLE => 
                 cnt_reset_internal <= cnt_timeout;                
+                cnt_enable <= enable;
+                sel_lo <= enable&enable;
+                clr_hi <= enable;
+                write_lo_src <= A_msb and sgn and div; -- A negative and signed div
                 busy <= '0';
 
                 if (enable = '1') then
-                    next_state <= INIT;
-                end if;
-
-            when INIT =>
-                sel_lo <= "11";
-                clr_hi <= '1';
-                write_lo_src <= A_msb and sgn and div; -- A negative and signed div
-                inv_src <= '0';
-                busy <= '0';
-                cnt_enable <= '1';
-
-                if (div = '1') then
-                    next_state <= EXEC_DIV;
-                else
-                    next_state <= EXEC_MUL;
+                    if (div = '1') then
+                        next_state <= EXEC_DIV;
+                    else
+                        next_state <= EXEC_MUL;
+                    end if;
+                else 
+                    next_state <= IDLE;
                 end if;
 
             when EXEC_MUL => 
                 sel_hi <= lo_lsb & "1";
                 sel_lo <= "01";
-                adder_A_src <= '0';
-                write_hi_src <= '0';
                 arit_shift_right <= sgn;
                 sub <= sgn and cnt_timeout; -- last bit has negative weight in 2's complement
                 cnt_enable <= '1';
                 busy <= '1';
                 
                 if (cnt_timeout = '1') then
-                    next_state <= IDLE;
+                    next_state <= HOLD;
                 else
                     next_state <= EXEC_MUL;
                 end if;
 
             when EXEC_DIV => 
                 sel_hi <= "1" & adder_carry_out;
+                sel_lo <= "10";
                 adder_A_src <= '1';
                 write_hi_src <= '1';
                 sub <= not (B_msb and sgn);
-                inv_src <= '1';
-                write_lo_src <= '1';
                 cnt_enable <= '1';
                 busy <= '1';
 
-                if (cnt_timeout = '1' and sgn = '1' and (A_msb xor B_msb) = '1') then
-                    sel_lo <= "11"; -- invert quotient at the end if sign(A) != sign(B)
-                else
-                    sel_lo <= "10";
-                end if;
-
                 if (cnt_timeout = '1') then
-                    next_state <= IDLE;
+                    if (sgn = '1' and (A_msb xor B_msb) = '1') then
+                        next_state <= INV_LO; -- invert quotient sign
+                    else
+                        next_state <= HOLD;
+                    end if;
                 else
                     next_state <= EXEC_DIV;
                 end if;
+
+            when INV_LO =>
+                sel_lo <= "11";
+                inv_src <= '1';
+                write_lo_src <= '1';
+                busy <= '1';
+                next_state <= HOLD;
+
+            when HOLD =>
+                busy <= '1';
+                next_state <= IDLE;
+
         end case;
     end process CONTROL; 
 end architecture;

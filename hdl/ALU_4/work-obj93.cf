@@ -1,0 +1,15 @@
+v 4
+file . "ALU_4.vhd" "42cccdf81cbd4f1b4cd2c9c5f099399c1ce5dbcc" "20220625181548.680":
+  entity alu_4 at 9( 263) + 0 on 21;
+  architecture adder of alu_4 at 19( 467) + 0 on 22;
+file . "PFA.vhd" "edb60fc277eb7d790cadbf8b586fcb9e35a7b1fe" "20220625181516.375":
+  entity p_g_block at 10( 340) + 0 on 11;
+  architecture p_g_structural of p_g_block at 22( 628) + 0 on 12;
+  entity black_block at 28( 747) + 0 on 13;
+  architecture black_structural of black_block at 39( 942) + 0 on 14;
+  entity s_block at 45( 1093) + 0 on 15;
+  architecture s_structural of s_block at 57( 1377) + 0 on 16;
+  entity black_unit at 63( 1546) + 0 on 17;
+  architecture black_unit_structural of black_unit at 75( 1873) + 0 on 18;
+  entity pfa at 93( 2444) + 0 on 19;
+  architecture pfa_structural of pfa at 109( 2788) + 0 on 20;

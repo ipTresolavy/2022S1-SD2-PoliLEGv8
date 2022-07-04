@@ -1,4 +1,3 @@
-
 -------------------------------------------------------
 --! @file DataFlow.vhd
 --! @brief Dataflow do polilegv8
@@ -23,11 +22,11 @@ entity DataFlow is
         reset: in bit;
         -- Instruction Memory
         instruction: in bit_vector(31 downto 0);
-        instruction_read_address: out bit_vector(integer(log2(real(instruction_memory_size))) - 1 downto 0);
+        instruction_read_address: out bit_vector(integer(ceil(log2(real(instruction_memory_size)))) - 1 downto 0);
         -- Data Memory
         read_data: in bit_vector(word_size - 1 downto 0);
         write_data: out bit_vector(word_size - 1 downto 0);
-        data_memory_address: out bit_vector(integer(log2(real(data_memory_size))) - 1 downto 0);
+        data_memory_address: out bit_vector(integer(ceil(log2(real(data_memory_size)))) - 1 downto 0);
         -- To Control Unit
         opcode: out bit_vector(10 downto 0);
         zero: out bit;
@@ -42,16 +41,15 @@ entity DataFlow is
             -- ALU's signals
         alu_control: in bit_vector(2 downto 0);
         set_flags: in bit;
-        shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+        shift_amount_src: in bit;
         alu_b_src: in bit_vector(1 downto 0);
         	-- mul_div_unit's signals
         mul_div_src: in bit;
         mul_div_busy : out bit;
         mul_div_enable: in bit;
-            --ALU_pc's signals
-        alu_pc_b_src: in bit;
             -- PC's signals
         pc_src: in bit;
+        pc_branch_src: in bit;
         pc_enable: in bit;
         	-- monitor's signals
         monitor_enable: in bit;
@@ -79,7 +77,7 @@ architecture structural of DataFlow is
             B: in bit_vector(word_size - 1 downto 0); -- ALU B
             alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
             set_flags: in bit;
-            shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+            shift_amount: in bit_vector(integer(ceil(log2(real(word_size)))) - 1 downto 0);
             Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
             Zero: out bit; -- Vale 1, caso Y = 0
             -- Registradores de flags
@@ -128,6 +126,16 @@ architecture structural of DataFlow is
             PC_register_in: out bit_vector(size - 1 downto 0)
         );
     end component ALU_pc;
+
+    component ALU_4 is
+        generic(
+            size: natural := 64
+        );
+        port(
+            PC: in bit_vector(size - 1 downto 0);
+            PC_register_in: out bit_vector(size - 1 downto 0)
+        );
+    end component ALU_4;
 
     component MOV is
         generic(
@@ -178,9 +186,9 @@ architecture structural of DataFlow is
         port(
             clock                   : in  bit;
             reset                   : in  bit;
-            read_reg_a              : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
-            read_reg_b              : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
-            write_reg               : in  bit_vector(integer(log2(real(amount_of_regs)))-1 downto 0);
+            read_reg_a              : in  bit_vector(integer(ceil(log2(real(amount_of_regs)))) - 1 downto 0);
+            read_reg_b              : in  bit_vector(integer(ceil(log2(real(amount_of_regs)))) - 1 downto 0);
+            write_reg               : in  bit_vector(integer(ceil(log2(real(amount_of_regs)))) - 1 downto 0);
             write_data              : in  bit_vector(register_width-1 downto 0);
             write_enable            : in  bit;
             reg_a_data              : out bit_vector(register_width-1 downto 0);
@@ -206,7 +214,10 @@ architecture structural of DataFlow is
     signal read_data_mux_out: bit_vector(word_size - 1 downto 0);
 
     -- Alu
+    signal zero_shift: bit_vector(integer(log2(real(word_size))) - 1 downto 0) := (others => '0');
+    signal shift_amount: bit_vector(integer(log2(real(word_size))) - 1 downto 0);
     signal alu_b: bit_vector(word_size - 1 downto 0);
+    signal alu_4_out: bit_vector(word_size - 1 downto 0);
     signal alu_out: bit_vector(word_size - 1 downto 0);
 
     -- mul_div_unit
@@ -227,6 +238,7 @@ architecture structural of DataFlow is
     signal shifted_immediate: bit_vector(word_size - 1 downto 0);
 
     -- PC
+    signal pc_branch: bit_vector(word_size - 1 downto 0);
     signal pc_in: bit_vector(word_size - 1 downto 0);
     signal pc_out: bit_vector(word_size - 1 downto 0);
 
@@ -256,6 +268,7 @@ architecture structural of DataFlow is
 begin
 
     -- To control unit
+
     opcode <= instruction(31 downto 21);
 
     -- Sign_extension_unit
@@ -263,7 +276,8 @@ begin
 
     -- ALU
     ULA: component ALU generic map(word_size) port map(clock, reset, read_data_a, alu_b, alu_control, set_flags, shift_amount, alu_out, zero, zero_r, overflow_r, carry_out_r, negative_r);
-    alu_b_mux: component mux4x1 generic map(word_size) port map(read_data_b, alu_pc_out, pc_out, immediate_extended, alu_b_src, alu_b);
+    alu_b_mux: component mux4x1 generic map(word_size) port map(read_data_b, alu_4_out, read_data_b, immediate_extended, alu_b_src, alu_b);
+    shift_amount_mux: component mux2x1 generic map(natural(log2(real(word_size)))) port map(zero_shift, instruction(15 downto 10), shift_amount_src, shift_amount);
 
 	--mul_div_unit
 	mul_div: component mul_div_unit generic map(word_size) port map(read_data_a, read_data_b, mul_div_enable, reset, clock, div, mul_div_unsgn, mul_div_busy, mul_div_high, mul_div_low);
@@ -271,18 +285,20 @@ begin
     div <= not instruction(24);
     mul_div_unsgn <= instruction(10) when div = '1' else instruction(23);
 
+    -- ALU_4
+    ULA_4: component ALU_4 generic map(word_size) port map(pc_out, alu_4_out);
+
     -- ALU_pc
-    ULA_pc: component ALU_pc generic map(word_size) port map(pc_out, alu_pc_b, alu_pc_out);
-    alu_pc_b_mux: component mux2x1 generic map(word_size) port map(immediate_4, shifted_immediate, alu_pc_b_src, alu_pc_b);
-    immediate_4 <= bit_vector(to_unsigned(4, word_size));
+    ULA_pc: component ALU_pc generic map(word_size) port map(pc_out, shifted_immediate, alu_pc_out);
     shifted_immediate <= immediate_extended(word_size - 3 downto 0) & "00";
 
     -- PC
     PC: component register_d generic map(word_size, 0) port map(pc_in, clock, pc_enable, reset, pc_out);
-    pc_mux: component mux2x1 generic map(word_size) port map(alu_out, alu_pc_out, pc_src, pc_in);
+    pc_branch_mux: component mux2x1 generic map(word_size) port map(alu_pc_out, alu_out, pc_branch_src, pc_branch);
+    pc_mux: component mux2x1 generic map(word_size) port map(alu_4_out, pc_branch, pc_src, pc_in);
 
-    -- Monitor
-    Monitor: component register_d generic map(5) port map(instruction(9 downto 5), clock, monitor_enable, reset, monitor_out);
+    -- Monitor (Salustiano?)
+    Monitor: component register_d generic map(5) port map(instruction(4 downto 0), clock, monitor_enable, reset, monitor_out);
 
     -- Instruction Memory
     instruction_read_address <= bit_vector(resize(unsigned(pc_out), integer(log2(real(instruction_memory_size)))));
@@ -293,12 +309,12 @@ begin
     mov_immediate <= bit_vector(resize(signed(instruction(20 downto 5)),word_size/4));
 
     -- Register File
-    Banco_de_registradores: component register_file generic map(32, word_size, 0) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
+    Banco_de_registradores: component register_file generic map(32, word_size, reg_reset_value) port map(clock, reset, read_register_a, read_register_b, write_register, write_register_data, write_register_enable, read_data_a, read_data_b);
     read_register_a_mux: component mux2x1 generic map(5) port map(instruction(9 downto 5), monitor_out, read_register_a_src, read_register_a);
     read_register_b_mux: component mux2x1 generic map(5) port map(instruction(20 downto 16), instruction(4 downto 0),  read_register_b_src, read_register_b);
     write_register_mux: component mux4x1 generic map(5) port map(instruction(4 downto 0), "11110", instruction(4 downto 0), instruction(20 downto 16), write_register_src, write_register);
     write_register_data_mux: component mux4x1 generic map(word_size) port map(alu_out, read_data_mux_out, mul_div_out, stxr_try, write_register_data_src, write_register_data_mux_out);
-    stxr_try_xor <= read_data_mux_out xor alu_out;
+    stxr_try_xor <= read_data_mux_out xor read_data_a;
     stxr_try_vector(0) <= stxr_try_xor(0);
     stxr_try_generate: for i in word_size - 1 downto 1 generate
         stxr_try_vector(i) <= (stxr_try_vector(i - 1) or stxr_try_xor(i));
@@ -312,10 +328,11 @@ begin
     write_data_memory_mux: component mux4x1 generic map(word_size) port map(write_data_memory_b, write_data_memory_h, write_data_memory_w, read_data_b, data_memory_src, write_data);
     write_data_memory_b <= bit_vector(resize(unsigned(read_data_b(word_size/8 - 1 downto 0)), word_size));
     write_data_memory_h <= bit_vector(resize(unsigned(read_data_b(word_size/4 - 1 downto 0)), word_size));
-    write_data_memory_w <= bit_vector(resize(signed(read_data_b(word_size/2 - 1 downto 0)), word_size));
+    write_data_memory_w <= bit_vector(resize(unsigned(read_data_b(word_size/2 - 1 downto 0)), word_size));
     read_data_memory_mux: component mux4x1 generic map(word_size) port map(read_data_memory_b, read_data_memory_h, read_data_memory_w, read_data, data_memory_src, read_data_mux_out);
     read_data_memory_b <= bit_vector(resize(unsigned(read_data(word_size/8 - 1 downto 0)), word_size));
     read_data_memory_h <= bit_vector(resize(unsigned(read_data(word_size/4 - 1 downto 0)), word_size));
-    read_data_memory_w <= bit_vector(resize(unsigned(read_data(word_size/2 - 1 downto 0)), word_size));
+    read_data_memory_w <= bit_vector(resize(signed(read_data(word_size/2 - 1 downto 0)), word_size));
 
 end architecture structural;
+

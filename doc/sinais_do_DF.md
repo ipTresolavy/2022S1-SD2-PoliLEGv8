@@ -8,8 +8,7 @@
 # Execute
 
 ## B (B-format)
-    * alu_control <-- 011
-    * alu_b_src <-- 11
+    * pc_src <-- 1
     * pc_enable
 
 instruction_read_address = SignExt( instruction[25:0] )
@@ -17,6 +16,8 @@ instruction_read_address = SignExt( instruction[25:0] )
 ## STURB (D-format)
     * alu_b_src <-- 11
     * read_register_b_src
+    * write_register_data_src <-- 01
+    * data_memory_src <-- 01
 
 SignExt( Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) ) = SignExt( Register_File(instruction[4:0])[7:0] )
 
@@ -37,6 +38,7 @@ if ( Flag_Register_File(cond) ) --> pc_enable --> instruction_read_address <-- i
 ## STURH (D-format)
     * alu_b_src <-- 11
     * read_register_b_src
+    * write_register_data_src <-- 01
     * data_memory_src <-- 01
 
 Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = SignExt( Register_File(instruction[4:0])[15:0] )
@@ -73,11 +75,16 @@ Register_File(instruction[4:0]) = Register_File(instruction[9:5]) + SignExt(inst
 Register_File(instruction[4:0]) = Register_File(instruction[9:5]) and SignExt(instruction[21:10])
 
 ## BL (B-format)
-    * alu_control <-- 011
-    * alu_b_src <-- 11
-    * pc_enable
-    * write_register_src
-    * write_register_enable
+This instruction has more than one execution state:
+    * link:
+        * alu_control <-- 011
+        * alu_b_src <-- 01
+        * write_register_enable
+        * write_register_src <-- 01
+    * branch:
+        * alu_control <-- 011
+        * alu_b_src <-- 11
+        * pc_enable
 
 Register_File(30) := LR = instruction_read_address --> instruction_read_address = SignExt( instruction[25:0] )
 
@@ -213,6 +220,7 @@ if (Register_File(instruction[4:0]) != 0) --> instruction_read_address = instruc
 ## STURW (D-format)
     * alu_b_src <-- 11
     * read_register_b_src
+    * write_register_data_src <-- 01
     * data_memory_src <-- 10
 
 Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = UnsignExt( Register_File(instruction[4:0])[31:0] )
@@ -225,8 +233,19 @@ Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = Uns
 Register_File(instruction[4:0]) = SignExt( Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12]))[31:0] )
 
 ## STXR (D-format)
-    * alu_control <-- 101
-    * read_register_a_src
+This instruction has more than one execution state
+
+    * initial_state:
+        * alu_control <-- 011
+        * read_register_a_src
+        * read_register_b_src
+        * WAIT_FOR_DATA_MEMORY
+        * write_register_data_src <-- 11
+        * write_reg_enable
+    * final_state:
+        * alu_control <-- 011
+        * read_register_b
+        *
 
 if (Data_memory(instruction[4:0]) == Register_File(Monitor)) --> Data_memory()
 
@@ -290,7 +309,7 @@ Register_File(instruction[4:0]) = Register_File(instruction[9:5]) << Register_Fi
 Register_File(instruction[4:0]) = Register_File(instruction[9:5]) >> Register_File(instruction[20:16])
 
 ## BR (R-format)
-    * alu_b_src <-- 10
+    * alu_control <-- 010
     * pc_enable
 
 instruction_read_address <-- Register_File(instruction[9:5])
@@ -339,7 +358,9 @@ Register_File(instruction[4:0]) = (UnsignExt( instruction[20:5] ) << (instructio
 ## STUR (D-format)
     * alu_b_src <-- 11
     * read_register_b_src
+    * write_register_data_src <-- 01
     * data_memory_src <-- 11
+
 
 Data_memory(Register_file(instruction[9:5]) + SignExt(instruction[20:12])) = Register_File(instruction[4:0])
 

@@ -20,7 +20,7 @@ entity ALU is
         B: in bit_vector(word_size - 1 downto 0); -- ALU B
         alu_control: in bit_vector(2 downto 0); -- ALU Control's signal
         set_flags: in bit;
-        shift_amount: in bit_vector(integer(log2(real(word_size))) - 1 downto 0);
+        shift_amount: in bit_vector(integer(ceil(log2(real(word_size)))) - 1 downto 0);
         Y: out bit_vector(word_size - 1 downto 0); -- ALU Result
         Zero: out bit; -- Vale 1, caso Y = 0
         -- Registradores de flags
@@ -63,7 +63,7 @@ architecture operations of ALU is
         port(
             A: in bit_vector(size - 1 downto 0);
             S: out bit_vector(size - 1 downto 0);
-            shift: in bit_vector(integer(log2(real(size))) - 1 downto 0)
+            shift: in bit_vector(integer(ceil(log2(real(size)))) - 1 downto 0)
         );
     end component barrel_shifter;
 
@@ -100,9 +100,9 @@ begin
                          B when alu_control(2 downto 0) = "011" else -- LSL
                          pfa_out when alu_control(2 downto 0) = "100" else
                          A xor B when alu_control(2 downto 0) = "101" else
-                         A nor B when alu_control(2 downto 0) = "110" else
+                         A when alu_control(2 downto 0) = "110" else
                          B; -- LSR
-          
+
     -- Barrel Shifter
     alu_inv: for i in word_size - 1 downto 0 generate
         alu_operation_out_inv(i) <= alu_operation_out(word_size - 1 - i);
@@ -110,14 +110,14 @@ begin
 
     barrel_shifter_in <= alu_operation_out_inv when alu_control(2 downto 0) = "111" else
                          alu_operation_out;
-    
+
     shifter: component barrel_shifter generic map(word_size) port map(barrel_shifter_in, barrel_shifter_out, shift_amount);
 
     -- Saída da ula
     barrel_out_inv: for i in word_size - 1 downto 0 generate
         barrel_shifter_out_inv(i) <= barrel_shifter_out(word_size - 1 - i);
     end generate barrel_out_inv;
-    
+
     alu_out <= barrel_shifter_out_inv when alu_control(2 downto 0) = "111" else
                barrel_shifter_out;
     Y <= alu_out;

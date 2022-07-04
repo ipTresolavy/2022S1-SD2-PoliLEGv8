@@ -167,6 +167,5 @@ begin
     adder_carry_out <= carry_out;
 
     -- sign inverter connections
-    inv_A <= not A when inv_src = '0' else
-             not (read_lo(word_s-2 downto 0) & carry_out); 
+    inv_A <= not A when inv_src = '0' else not read_lo;
 end architecture;

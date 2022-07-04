@@ -29,26 +29,26 @@ architecture tb of DataFlow_tb is
             clock                    : in bit;
             reset                    : in bit;
             instruction              : in bit_vector (31 downto 0);
-            instruction_read_address : out bit_vector (integer(log2(real(instruction_memory_size))) - 1 downto 0);
+            instruction_read_address : out bit_vector (integer(ceil(log2(real(instruction_memory_size)))) - 1 downto 0);
             read_data                : in bit_vector (word_size - 1 downto 0);
             write_data               : out bit_vector (word_size - 1 downto 0);
-            data_memory_address      : out bit_vector (integer(log2(real(data_memory_size))) - 1 downto 0);
+            data_memory_address      : out bit_vector (integer(ceil(log2(real(data_memory_size)))) - 1 downto 0);
             opcode                   : out bit_vector (10 downto 0);
             zero                     : out bit;
             zero_r                   : out bit;
             carry_out_r              : out bit;
+            pc_branch_src            : in bit;
             overflow_r               : out bit;
             negative_r               : out bit;
             stxr_try_out             : out bit;
             mov_enable               : in bit;
             alu_control              : in bit_vector (2 downto 0);
             set_flags                : in bit;
-            shift_amount             : in bit_vector (integer(log2(real(word_size))) - 1 downto 0);
             alu_b_src                : in bit_vector (1 downto 0);
+            shift_amount_src         : in bit;
             mul_div_src              : in bit;
             mul_div_busy             : out bit;
             mul_div_enable           : in bit;
-            alu_pc_b_src             : in bit;
             pc_src                   : in bit;
             pc_enable                : in bit;
             monitor_enable           : in bit;
@@ -58,15 +58,16 @@ architecture tb of DataFlow_tb is
             write_register_data_src  : in bit_vector (1 downto 0);
             write_register_enable    : in bit;
             data_memory_src          : in bit_vector (1 downto 0));
+
     end component;
 
     -- DUT signals
     signal reset                    : bit;
     signal instruction              : bit_vector (31 downto 0);
-    signal instruction_read_address : bit_vector (integer(log2(real(instruction_memory_size))) - 1 downto 0);
+    signal instruction_read_address : bit_vector (integer(ceil(log2(real(instruction_memory_size)))) - 1 downto 0);
     signal read_data                : bit_vector (word_size - 1 downto 0);
     signal write_data               : bit_vector (word_size - 1 downto 0);
-    signal data_memory_address      : bit_vector (integer(log2(real(data_memory_size))) - 1 downto 0);
+    signal data_memory_address      : bit_vector (integer(ceil(log2(real(data_memory_size)))) - 1 downto 0);
     signal opcode                   : bit_vector (10 downto 0);
     signal zero                     : bit;
     signal zero_r                   : bit;
@@ -77,12 +78,10 @@ architecture tb of DataFlow_tb is
     signal mov_enable               : bit;
     signal alu_control              : bit_vector (2 downto 0);
     signal set_flags                : bit;
-    signal shift_amount             : bit_vector (integer(log2(real(word_size))) - 1 downto 0);
     signal alu_b_src                : bit_vector (1 downto 0);
     signal mul_div_src              : bit;
     signal mul_div_busy             : bit;
     signal mul_div_enable           : bit;
-    signal alu_pc_b_src             : bit;
     signal pc_src                   : bit;
     signal pc_enable                : bit;
     signal monitor_enable           : bit;
@@ -92,6 +91,8 @@ architecture tb of DataFlow_tb is
     signal write_register_data_src  : bit_vector (1 downto 0);
     signal write_register_enable    : bit;
     signal data_memory_src          : bit_vector (1 downto 0);
+    signal shift_amount_src         : bit;
+    signal pc_branch_src            : bit;
 
     -- tb signals
     constant clk_period : time := 50 ps;
@@ -125,12 +126,10 @@ begin
         mov_enable               => mov_enable,
         alu_control              => alu_control,
         set_flags                => set_flags,
-        shift_amount             => shift_amount,
         alu_b_src                => alu_b_src,
         mul_div_src              => mul_div_src,
         mul_div_busy             => mul_div_busy,
         mul_div_enable           => mul_div_enable,
-        alu_pc_b_src             => alu_pc_b_src,
         pc_src                   => pc_src,
         pc_enable                => pc_enable,
         monitor_enable           => monitor_enable,
@@ -139,7 +138,9 @@ begin
         write_register_src       => write_register_src,
         write_register_data_src  => write_register_data_src,
         write_register_enable    => write_register_enable,
-        data_memory_src          => data_memory_src
+        data_memory_src          => data_memory_src,
+        shift_amount_src         => shift_amount_src,
+        pc_branch_src            => pc_branch_src
     );
 
     -- Clock generation
@@ -152,12 +153,11 @@ begin
             mov_enable <= '0';
             alu_control <= "000";
             set_flags <= '0';
-            shift_amount <= (others => '0');
             alu_b_src <= "00";
             mul_div_src <= '0';
             mul_div_enable <= '0';
-            alu_pc_b_src <= '0';
             pc_src <= '0';
+            pc_branch_src <= '0';
             pc_enable <= '0';
             monitor_enable <= '0';
             read_register_a_src <= '0';
@@ -166,11 +166,12 @@ begin
             write_register_data_src <= "00";
             write_register_enable <= '0';
             data_memory_src <= "00";
+            shift_amount_src <= '0';
         end procedure;
 
         -- assert reg_file[reg_num] = value
         procedure assert_register_integer (
-            constant reg_num : in natural range 0 to 31;
+            constant reg_num : in integer range 0 to 31;
             constant value   : in integer;
             constant message : String
             ) is
@@ -202,6 +203,39 @@ begin
                 report message severity error;
         end procedure;
 
+        -- reg_file[reg_num] <= value
+        procedure store_register_integer (
+            constant reg_num : in integer range 0 to 30;
+            constant value   : in integer
+        ) is
+        begin
+            reset_test_signals;
+            data_memory_src <= "11";         -- get doubleword
+            write_register_data_src <= "01"; -- read from memory
+            write_register_src <= "00";      -- write at instruction[4:0]
+            write_register_enable <= '1';
+
+            instruction(4 downto 0) <= bit_vector(to_unsigned(reg_num, 5));
+            read_data <= bit_vector(to_signed(value, word_size));
+            wait until rising_edge(clk);
+        end procedure;
+
+        -- reg_file[reg_num] <= value
+        procedure store_register_bit_vector (
+            constant reg_num : in natural range 0 to 30;
+            constant value   : in bit_vector(word_size-1 downto 0)
+        ) is
+        begin
+            reset_test_signals;
+            data_memory_src <= "11";         -- get doubleword
+            write_register_data_src <= "01"; -- read from memory
+            write_register_src <= "00";      -- write at instruction[4:0]
+            write_register_enable <= '1';
+
+            instruction(4 downto 0) <= bit_vector(to_unsigned(reg_num, 5));
+            read_data <= value;
+            wait until rising_edge(clk);
+        end procedure;
     begin
         -- INITIALIZATION
         reset_test_signals;
@@ -211,37 +245,14 @@ begin
         reset <= '0';
 
         -- POPULATE REGISTERS
-        data_memory_src <= "11";         -- get doubleword
-        write_register_data_src <= "01"; -- read from memory
-        write_register_enable <= '1';
-
-        instruction(4 downto 0) <= "00001";
-        read_data <= "0000000000000000000000000000000000000000000000000000000000001101"; -- +13
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00010";
-        read_data <= "1111111111111111111111111111111111111111111111111111111111111110"; -- -2
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00011";
-        read_data <= "1000000000000000000000000000000000000000000000000000000000000000"; -- -2^63
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00100";
-        read_data <= "1000000000000000000000000000000000000000000000000000000000000001"; -- -2^63 + 1
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00101";
-        read_data <= "1111111111111111111111111111111111111111111111111111111111111111"; -- -1
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00110";
-        read_data <= "0000000000000000000000000000000000000000000000000000000000000001"; -- 1
-        wait until rising_edge(clk);
-
-        instruction(4 downto 0) <= "00111";
-        read_data <= "0000000000000000000000000000000000000000000000000000000000001100"; -- +12
-        wait until rising_edge(clk);
+        store_register_integer(1, 13);
+        store_register_integer(2, -2);
+        store_register_bit_vector(3, x"8000000000000000"); -- -2^63
+        store_register_bit_vector(4, x"8000000000000001");  -- -2^63 + 1
+        store_register_integer(5, -1);
+        store_register_integer(6, 1);
+        store_register_integer(7, 12);
+        store_register_integer(8, 2);
 
         reset_test_signals;
 
@@ -255,19 +266,76 @@ begin
         read_register_b_src <= '0';       -- instruction[20:16]
         alu_b_src <= "00";                -- read_data 2
         alu_control <= "100";             -- add
-        shift_amount <= "000000";
         write_register_src <= "00";        -- instruction[4:0]
         write_register_data_src <= "00";  -- alu_out
         write_register_enable <= '1';
         wait until rising_edge(clk);
 
         assert_register_integer(0, 1, "bad alu_out");
+        reset_test_signals;
 
-        -- TEST TYPE R WITH FLAGS
-        -- ???
+        -- TEST TYPE R WITH FLAGS 1
+        report "test 2" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11101011000"&"00110"&"000000"&"00011"&"00000"; -- SUBS
+        read_register_a_src <= '0';       -- instruction[9:5]
+        read_register_b_src <= '0';       -- instruction[20:16]
+        alu_b_src <= "00";                -- read_data 2
+        alu_control <= "100";             -- sub
+        write_register_src <= "00";        -- instruction[4:0]
+        write_register_data_src <= "00";  -- alu_out
+        write_register_enable <= '1';
+        set_flags <= '1';
+        wait until rising_edge(clk);
+
+        wait for clk_period/2;
+        assert (carry_out_r = '1') and (overflow_r = '1') and (zero_r = '0') and (negative_r = '0')
+            report "bad flags" severity error;
+        wait for clk_period/2;
+        reset_test_signals;
+
+        -- TEST TYPE R WITH FLAGS 2
+        report "test 3" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "10101011000"&"00101"&"000000"&"00110"&"00000"; -- ADDS
+        read_register_a_src <= '0';       -- instruction[9:5]
+        read_register_b_src <= '0';       -- instruction[20:16]
+        alu_b_src <= "00";                -- read_data 2
+        alu_control <= "000";             -- add
+        write_register_src <= "00";        -- instruction[4:0]
+        write_register_data_src <= "00";  -- alu_out
+        write_register_enable <= '1';
+        set_flags <= '1';
+        wait until rising_edge(clk);
+
+        wait for clk_period/2;
+        assert (carry_out_r = '1') and (overflow_r = '0') and (zero_r = '1') and (negative_r = '0')
+            report "bad flags" severity error;
+        wait for clk_period/2;
+        reset_test_signals;
+
+        -- TEST TYPE R WITH FLAGS 3
+        report "test 4" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "10101011000"&"00101"&"000000"&"00101"&"00000"; -- ADDS
+        read_register_a_src <= '0';       -- instruction[9:5]
+        read_register_b_src <= '0';       -- instruction[20:16]
+        alu_b_src <= "00";                -- read_data 2
+        alu_control <= "000";             -- add
+        write_register_src <= "00";        -- instruction[4:0]
+        write_register_data_src <= "00";  -- alu_out
+        write_register_enable <= '1';
+        set_flags <= '1';
+        wait until rising_edge(clk);
+
+        wait for clk_period/2;
+        assert (carry_out_r = '1') and (overflow_r = '0') and (zero_r = '0') and (negative_r = '1')
+            report "bad flags" severity error;
+        wait for clk_period/2;
+        reset_test_signals;
 
         -- TEST TYPE R MUL/DIV LOW
-        report "test 3" severity note;
+        report "test 5" severity note;
         --                   op        rm     shamt     rn      rt
         instruction <= "10011010110"&"00010"&"000010"&"00111"&"00000"; --SDIV
         read_register_a_src <= '0';     -- instruction[9:5]
@@ -275,18 +343,145 @@ begin
         mul_div_src <= '0';             -- get low register
         mul_div_enable <= '1';
         wait until mul_div_busy = '1';
-        wait until mul_div_busy = '0';
         mul_div_enable <= '0';
+        wait until mul_div_busy = '0';
 
         write_register_src <= "00";
         write_register_data_src <= "10";
         write_register_enable <= '1';
         wait until rising_edge(clk);
 
-        assert_register_integer(0, -6, "bad alu_out");
+        assert_register_integer(0, -6, "bad div low");
+        reset_test_signals;
+
+        -- TEST TYPE R MUL/DIV HIGH
+        report "test 6" severity note;
+        --                   op        rm     shamt     rn      rt
+        instruction <= "10011011110"&"01000"&"000010"&"00101"&"00000"; --UMULH
+        read_register_a_src <= '0';     -- instruction[9:5]
+        read_register_b_src <= '0';     -- instruction[20:16]
+        mul_div_src <= '1';             -- get high register
+        mul_div_enable <= '1';
+        wait until mul_div_busy = '1';
+        mul_div_enable <= '0';
+        wait until mul_div_busy = '0';
+
+        write_register_src <= "00";
+        write_register_data_src <= "10";
+        write_register_enable <= '1';
+        wait until rising_edge(clk);
+
+        assert_register_integer(0, 1, "bad mul high");
+        reset_test_signals;
+
+        -- TEST TYPE R BR
+        report "test 7" severity note;
+        store_register_integer(1, INSTRUCTION_MEMORY_SIZE/2);
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11010110000"&"11111"&"000000"&"00001"&"00000"; --BR X1
+        read_register_a_src <= '0';     -- instruction[9:5]
+        read_register_b_src <= '0';     -- instruction[20:16] (always XZR)
+        alu_b_src <= "00";              -- read register 2
+        alu_control <= "000";           -- ADD
+        pc_src <= '1';                  -- alu_out
+        pc_branch_src <= '1';
+        pc_enable <= '1';
+        wait until rising_edge(clk);
+
+        wait for clk_period/2;
+        assert to_integer(unsigned(instruction_read_address)) = INSTRUCTION_MEMORY_SIZE/2
+            report "bad PC" severity error;
+        wait for clk_period/2;
+        reset_test_signals;
+
+        -- TEST TYPE R LDXR/STXR ATOMIC
+        report "test 8" severity note;
+        -- lock is at mem[reg_file[2]] and holds the value 42
+        -- X1 -> initial value of the lock (taken from ldxr)
+        -- X2 -> address base register
+        -- X3 -> new value of the lock (stored by stxr)
+        -- X4 -> status of the operation
+        store_register_integer(2, 13);
+        store_register_integer(3, 43);
+
+        -- load lock value into X1
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11001000010"&"11111"&"000000"&"00010"&"00001"; --LDXR X1, X2
+        read_register_a_src <= '0';      -- instruction[9:5]
+        read_register_b_src <= '0';      -- instruction[20:16] (always XZR)
+        write_register_src <= "00";      -- instruction[4:0]
+        write_register_data_src <= "01"; -- memory
+        alu_b_src <= "00";               -- read register 2
+        alu_control <= "000";            -- ADD
+        read_data <= bit_vector(to_unsigned(42, word_size));
+        write_register_enable <= '1';
+        monitor_enable <= '1';
+        wait until rising_edge(clk);
+        reset_test_signals;
+
+        -- attempt to store new lock value
+        --                   op        rs                   rn      rt
+        instruction <= "11001000000"&"00100"&"0"&"11111"&"00010"&"00011"; --STXR X4, X3, X2
+        read_register_a_src <= '0'; -- instruction[9:5]
+        alu_b_src <= "11";
+        alu_control <= "000";
+        wait until rising_edge(clk);
+        read_data <= bit_vector(to_unsigned(42, word_size));
+        read_register_a_src <= '1';
+        write_register_src <= "11";
+        write_register_data_src <= "11";
+        write_register_enable <= '1';
+        data_memory_src <= "11";
+
+        wait until rising_edge(clk);
+        wait for clk_period/2;
+        assert_register_integer(4, 0, "bad status register");
+
+        -- TEST TYPE R LDXR/STXR NON-ATOMIC
+        report "test 9" severity note;
+        -- lock is at mem[reg_file[2]] and holds the value 42
+        -- X1 -> initial value of the lock (taken from ldxr)
+        -- X2 -> address base register
+        -- X3 -> new value of the lock (stored by stxr)
+        -- X4 -> status of the operation
+        store_register_integer(2, 13);
+        store_register_integer(3, 43);
+
+        -- load lock value into X1
+        --                   op        rm     shamt     rn      rt
+        instruction <= "11001000010"&"11111"&"000000"&"00010"&"00001"; --LDXR X1, X2
+        read_register_a_src <= '0';      -- instruction[9:5]
+        read_register_b_src <= '0';      -- instruction[20:16] (always XZR)
+        write_register_src <= "00";      -- instruction[4:0]
+        write_register_data_src <= "01"; -- memory
+        alu_b_src <= "00";               -- read register 2
+        alu_control <= "000";            -- ADD
+        read_data <= bit_vector(to_unsigned(42, word_size));
+        write_register_enable <= '1';
+        monitor_enable <= '1';
+        wait until rising_edge(clk);
+        reset_test_signals;
+
+        -- attempt to store new lock value
+        --                   op        rs                   rn      rt
+        instruction <= "11001000000"&"00100"&"0"&"11111"&"00010"&"00011"; --STXR X4, X3, X2
+        read_register_a_src <= '0'; -- instruction[9:5]
+        alu_b_src <= "11";
+        alu_control <= "000";
+        wait until rising_edge(clk);
+        read_data <= bit_vector(to_unsigned(77, word_size)); -- wrong value, expected 42
+        read_register_a_src <= '1';
+        write_register_src <= "11";
+        write_register_data_src <= "11";
+        write_register_enable <= '1';
+        data_memory_src <= "11";
+
+        wait until rising_edge(clk);
+        wait for clk_period/2;
+        assert_register_integer(4, 1, "bad status register");
 
         -- TEST OF I-FORMAT INSTRUCTIONS
-        report "test 4" severity note;
+        report "test 10" severity note;
         reset_test_signals;
 
         --                   op     ALU_immediate    rn      rd
@@ -343,82 +538,85 @@ begin
             severity error;
 
         -- TEST OF B-FORMAT INSTRUCTIONS
-        report "test 5" severity note;
+        report "test 11" severity note;
         reset_test_signals;
 
         --                op     BR_address
         instruction <= "000101"&"00"&x"00007F"; -- B (2^7 - 1)
         alu_control <= "011"; -- ALU pass-b operation
         alu_b_src <= "11"; -- alu_b <-- ALU_immediate
+        pc_src <= '1';
         pc_enable <= '1';
         wait until rising_edge(clk);
-        wait for clk_period/2;
-        assert instruction_read_address = "1111111" report "Error on PC during branch instruction"
-            severity error;
-        wait for clk_period/2;
-
         reset_test_signals;
+        wait for clk_period/2;
+        -- 100 0000
+        -- 111 1100
+        -- 011 1100
+        assert instruction_read_address = "0111100" report "Error on PC during branch instruction"
+            severity error;  --                100
+        wait for clk_period*(3/2); --      1000000
+
 
         --                op     BR_address
-        instruction <= "100101"&"00"&x"000000"; -- BL #0
+        instruction <= "100101"&"00"&x"000001"; -- BL #1
         -- link:
         alu_control <= "011";
-        alu_b_src <= "10";
+        alu_b_src <= "01";
         write_register_src <= "01";
         write_register_enable <= '1';
         wait until rising_edge(clk);
         reset_test_signals;
+        assert_register_bit_vector(30, x"0000000000000240", "Error on link register value during branch-and-link");
 
         -- branch
         alu_control <= "011"; -- ALU pass-b operation
         alu_b_src <= "11"; -- alu_b <-- ALU_immediate
+        pc_src <= '1';
         pc_enable <= '1';
         wait until rising_edge(clk);
+        reset_test_signals;
         wait for clk_period/2;
-        assert instruction_read_address = "0000000" report "Error on PC during branch-and-link instruction"
+        assert instruction_read_address = "1000000" report "Error on PC during branch-and-link instruction"
             severity error;
         wait for clk_period/2;
-        assert_register_bit_vector(30, x"000000000000007F", "Error on link register value during branch-and-link");
 
         -- TEST OF CB-FORMAT INSTRUCTIONS
-        report "test 6" severity note;
+        report "test 12" severity note;
         reset_test_signals;
 
         --                  op   COND_BR_address   rt
         instruction <= "10110100"&"000"&x"007F"&"11111"; -- CBZ XZR, #(2^16 -1)
         alu_control <= "011";
-        alu_pc_b_src <= '1';
         pc_src <= '1';
-        pc_enable <= zero;
+        pc_enable <= '1';
         read_register_b_src <= '1';
         wait until rising_edge(clk);
         wait for clk_period/2;
-        assert instruction_read_address = "1111111" report "Error on PC during compare-and-branch-if-zero instruction"
+        assert instruction_read_address = "0111100" report "Error on PC during compare-and-branch-if-zero instruction"
             severity error;
+        wait for clk_period/2;
 
         reset_test_signals;
 
         --                 op   COND_BR_address   rt
         instruction <= "10110101"&"111"&x"FFFF"&"01001"; -- CBNZ X9, #-1
         alu_control <= "011";
-        alu_pc_b_src <= '1';
         pc_src <= '1';
-        pc_enable <= not zero;
+        pc_enable <= '1';
         read_register_b_src <= '1';
         wait until rising_edge(clk);
-        wait for clk_period/2;
-        assert instruction_read_address = "1111110" report "Error on PC during compare-and-branch-if-not-zero instruction"
+        assert instruction_read_address = "0111000" report "Error on PC during compare-and-branch-if-not-zero instruction"
             severity error;
 
         -- TEST OF IW/IM-FORMAT INSTRUCTIONS
-        report "test 7" severity note;
+        report "test 13" severity note;
         reset_test_signals;
 
         --                  op     lsl MOV_immediate rd
         instruction <= "110100101"&"11"&x"FFFF"&"01001"; -- MOVZ X9, #(2^16 -1), LSL #48
-        mov_enable <= '0';
+        mov_enable <= '1';
         alu_control <= "011";
-        shift_amount <= instruction(22 downto 21) & "0000";
         read_register_b_src <= '1';
         write_register_enable <= '1';
         wait until rising_edge(clk);
@@ -428,9 +626,8 @@ begin
 
         --                  op     lsl MOV_immediate rd
         instruction <= "111100101"&"00"&x"FFFF"&"01001"; -- MOVK X9, #(2^16 -1), LSL #0
-        mov_enable <= '0';
+        mov_enable <= '1';
         alu_control <= "011";
-        shift_amount <= instruction(22 downto 21) & "0000";
         read_register_b_src <= '1';
         write_register_enable <= '1';
         wait until rising_edge(clk);

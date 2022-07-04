@@ -140,7 +140,7 @@ architecture PFA_structural of PFA is
             S: out bit_vector(size - 1 downto 0)
         );
     end component S_block;
-    constant expoente : natural := integer(log2(real(size)));
+    constant expoente : natural := integer(ceil(log2(real(size))));
     type signal_array is array(expoente downto 0) of bit_vector(size - 1 downto 0);
     signal p_array: signal_array;
     signal g_array: signal_array;

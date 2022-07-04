@@ -1,6 +1,6 @@
 
 -------------------------------------------------------
---! @file instruction_memory.vhdl
+--! @file ALU_pc.vhd
 --! @brief ALU responsável por incrementar o pc
 --! @author Joao Pedro Cabral Miranda (miranda.jp@usp.br)
 --! @date 2022-05-26

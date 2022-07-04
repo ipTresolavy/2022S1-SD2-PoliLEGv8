@@ -16,7 +16,7 @@ entity barrel_shifter is
     port(
         A: in bit_vector(size - 1 downto 0);
         S: out bit_vector(size - 1 downto 0);
-        shift: in bit_vector(integer(log2(real(size))) - 1 downto 0)
+        shift: in bit_vector(integer(ceil(log2(real(size)))) - 1 downto 0)
     );
 end entity barrel_shifter;
 
@@ -31,7 +31,7 @@ architecture shift of barrel_shifter is
         );
     end component;
 
-    constant expoente: natural := integer(log2(real(size)));
+    constant expoente: natural := integer(ceil(log2(real(size))));
     -- uso essa matriz de bits para facilitar na construção do for generate
     type signal_array is array(expoente downto 0) of bit_vector(size - 1 downto 0);
     signal shift_array: signal_array;
