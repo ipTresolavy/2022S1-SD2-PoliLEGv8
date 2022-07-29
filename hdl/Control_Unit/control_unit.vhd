@@ -236,7 +236,7 @@ begin
                         else -- Stores
 
                             wait_for_data_mem(false);
-                            if (opcode(8) & opcode(1) = "00") then -- STXR
+                            if (opcode(8) = '0' and opcode(1) = '0') then -- STXR
                                 read_register_a_src <= '1';
                                 write_register_src <= "11";
                                 write_register_data_src <= "11";
@@ -245,7 +245,7 @@ begin
                         end if;
 
                         -- Deciding next state
-                        if(opcode(8) & opcode(1) = "00") then
+                        if(opcode(8) = '0' and opcode(1) = '0') then
                             next_state <= stxr_execute;
                         else
                             pc_enable <= '1';
